@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_30_003729) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_30_020610) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -276,6 +276,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_003729) do
     t.index ["status"], name: "index_communications_on_status"
     t.index ["template_name"], name: "index_communications_on_template_name"
     t.index ["thread_id"], name: "index_communications_on_thread_id"
+  end
+
+  create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "website"
+    t.string "industry"
+    t.text "description"
+    t.string "subscription_tier", default: "starter", null: false
+    t.boolean "active", default: true, null: false
+    t.integer "employee_count"
+    t.string "company_size", default: "small", null: false
+    t.string "time_zone", default: "UTC"
+    t.json "settings", default: {}
+    t.datetime "trial_ends_at"
+    t.datetime "subscription_ends_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_companies_on_active"
+    t.index ["company_size"], name: "index_companies_on_company_size"
+    t.index ["industry"], name: "index_companies_on_industry"
+    t.index ["name"], name: "index_companies_on_name"
+    t.index ["subscription_tier"], name: "index_companies_on_subscription_tier"
+    t.index ["trial_ends_at"], name: "index_companies_on_trial_ends_at"
   end
 
   create_table "departments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

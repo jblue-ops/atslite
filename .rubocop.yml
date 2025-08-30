@@ -1,7 +1,4 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
-
-require:
+plugins:
   - rubocop-rails
   - rubocop-performance
   - rubocop-rspec
@@ -567,7 +564,10 @@ RSpec/ExpectInHook:
 RSpec/ExpectOutput:
   Enabled: true
 
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
+  Enabled: true
+
+RSpec/SpecFilePathSuffix:
   Enabled: true
 
 RSpec/Focus:

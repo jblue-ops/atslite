@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="mx-auto h-12 w-12 flex items-center justify-center bg-blue-500 rounded-full">
+      <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+      </svg>
+    </div>
+    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+      Join ATSLite
+    </h2>
+    <p class="mt-2 text-center text-sm text-gray-600">
+      Start your recruiting journey today
+    </p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), 
+                    local: true, class: "space-y-6") do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <!-- Personal Information Section -->
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <%= f.label :first_name, "First Name", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.text_field :first_name, required: true,
+                              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+            
+            <div>
+              <%= f.label :last_name, "Last Name", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.text_field :last_name, required: true,
+                              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :email, "Email Address", class: "block text-sm font-medium text-gray-700" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true,
+                              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+          </div>
+
+          <div>
+            <%= f.label :phone, "Phone Number", class: "block text-sm font-medium text-gray-700" %>
+            <%= f.text_field :phone, autocomplete: "tel",
+                            class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <%= f.label :password, "Password", class: "block text-sm font-medium text-gray-700" %>
+              <% if @minimum_password_length %>
+                <p class="text-xs text-gray-500">(<%= @minimum_password_length %> characters minimum)</p>
+              <% end %>
+              <%= f.password_field :password, autocomplete: "new-password", required: true,
+                                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+            
+            <div>
+              <%= f.label :password_confirmation, "Confirm Password", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true,
+                                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Section -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Organization</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <fieldset>
+                <legend class="sr-only">Organization options</legend>
+                <div class="space-y-3">
+                  <div class="flex items-center">
+                    <%= f.radio_button :create_organization, "true", checked: true, 
+                                       class: "focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300",
+                                       id: "create_new_org" %>
+                    <%= f.label :create_organization, "Create a new organization", 
+                               class: "ml-3 block text-sm font-medium text-gray-700",
+                               for: "create_new_org" %>
+                  </div>
+                  
+                  <% if @organizations.any? %>
+                    <div class="flex items-center">
+                      <%= f.radio_button :create_organization, "false", 
+                                         class: "focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300",
+                                         id: "join_existing_org" %>
+                      <%= f.label :create_organization, "Join an existing organization", 
+                                 class: "ml-3 block text-sm font-medium text-gray-700",
+                                 for: "join_existing_org" %>
+                    </div>
+                  <% end %>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- New Organization Fields -->
+            <div id="new_organization_fields" class="space-y-4">
+              <%= f.fields_for :organization_attributes do |org_f| %>
+                <div>
+                  <%= org_f.label :name, "Organization Name", class: "block text-sm font-medium text-gray-700" %>
+                  <%= org_f.text_field :name, required: true,
+                                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <%= org_f.label :website, "Website", class: "block text-sm font-medium text-gray-700" %>
+                    <%= org_f.url_field :website,
+                                        class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                  </div>
+
+                  <div>
+                    <%= org_f.label :industry, "Industry", class: "block text-sm font-medium text-gray-700" %>
+                    <%= org_f.select :industry, 
+                                     options_for_select([
+                                       ["Technology", "technology"],
+                                       ["Healthcare", "healthcare"], 
+                                       ["Finance", "finance"],
+                                       ["Education", "education"],
+                                       ["Retail", "retail"],
+                                       ["Manufacturing", "manufacturing"],
+                                       ["Other", "other"]
+                                     ], ""), 
+                                     { prompt: "Select industry" },
+                                     { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+                  </div>
+                </div>
+
+                <div>
+                  <%= org_f.label :size_category, "Company Size", class: "block text-sm font-medium text-gray-700" %>
+                  <%= org_f.select :size_category,
+                                   options_for_select([
+                                     ["Startup (1-10 employees)", "startup"],
+                                     ["Small (11-50 employees)", "small"],
+                                     ["Medium (51-200 employees)", "medium"],
+                                     ["Large (201-1000 employees)", "large"],
+                                     ["Enterprise (1000+ employees)", "enterprise"]
+                                   ], ""),
+                                   { prompt: "Select company size" },
+                                   { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+                </div>
+
+                <div>
+                  <%= org_f.label :description, "Description", class: "block text-sm font-medium text-gray-700" %>
+                  <%= org_f.text_area :description, rows: 3,
+                                      class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Existing Organization Selection -->
+            <% if @organizations.any? %>
+              <div id="existing_organization_fields" class="hidden">
+                <%= f.label :organization_id, "Select Organization", class: "block text-sm font-medium text-gray-700" %>
+                <%= f.select :organization_id,
+                             options_from_collection_for_select(@organizations, :id, :display_name, ""),
+                             { prompt: "Choose an organization" },
+                             { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.submit "Create Account", 
+                      class: "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out" %>
+        </div>
+
+        <div class="text-center">
+          <span class="text-sm text-gray-600">
+            Already have an account?
+            <%= link_to "Sign in here", new_session_path(resource_name), 
+                        class: "font-medium text-blue-600 hover:text-blue-500" %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Toggle between new organization and existing organization fields
+  document.addEventListener('DOMContentLoaded', function() {
+    const createNewRadio = document.getElementById('create_new_org');
+    const joinExistingRadio = document.getElementById('join_existing_org');
+    const newOrgFields = document.getElementById('new_organization_fields');
+    const existingOrgFields = document.getElementById('existing_organization_fields');
+
+    function toggleFields() {
+      if (createNewRadio && createNewRadio.checked) {
+        newOrgFields.classList.remove('hidden');
+        if (existingOrgFields) {
+          existingOrgFields.classList.add('hidden');
+        }
+      } else if (joinExistingRadio && joinExistingRadio.checked) {
+        newOrgFields.classList.add('hidden');
+        if (existingOrgFields) {
+          existingOrgFields.classList.remove('hidden');
+        }
+      }
+    }
+
+    if (createNewRadio) {
+      createNewRadio.addEventListener('change', toggleFields);
+    }
+    if (joinExistingRadio) {
+      joinExistingRadio.addEventListener('change', toggleFields);
+    }
+
+    // Initialize
+    toggleFields();
+  });
+</script>

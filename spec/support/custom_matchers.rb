@@ -8,7 +8,7 @@ RSpec::Matchers.define :have_job_status do |expected_status|
     "expected job to have status '#{expected_status}', but was '#{job.status}'"
   end
 
-  failure_message_when_negated do |job|
+  failure_message_when_negated do |_job|
     "expected job not to have status '#{expected_status}', but it did"
   end
 end
@@ -25,20 +25,22 @@ end
 
 RSpec::Matchers.define :be_interview_schedulable do
   match do |application|
-    application.present? && 
-    application.current_stage.in?(['screening', 'interview', 'technical']) &&
-    application.candidate.present? &&
-    application.job.present?
+    application.present? &&
+      application.current_stage.in?(%w[screening interview technical]) &&
+      application.candidate.present? &&
+      application.job.present?
   end
 
   failure_message do |application|
     reasons = []
     reasons << "application is nil" if application.nil?
-    reasons << "stage is #{application.current_stage}" unless application&.current_stage&.in?(['screening', 'interview', 'technical'])
+    unless application&.current_stage&.in?(%w[screening interview technical])
+      reasons << "stage is #{application.current_stage}"
+    end
     reasons << "candidate is missing" if application&.candidate.nil?
     reasons << "job is missing" if application&.job.nil?
-    
-    "expected application to be schedulable for interview, but #{reasons.join(', ')}"
+
+    "expected application to be schedulable for interview, but #{reasons.join(", ")}"
   end
 end
 
@@ -47,14 +49,14 @@ RSpec::Matchers.define :have_resume_attached do
     candidate.resume.attached?
   end
 
-  failure_message do |candidate|
+  failure_message do |_candidate|
     "expected candidate to have resume attached, but resume was not attached"
   end
 end
 
 RSpec::Matchers.define :have_valid_email_format do
   match do |user|
-    user.email =~ /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
+    user.email =~ /\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i
   end
 
   failure_message do |user|
@@ -69,7 +71,7 @@ RSpec::Matchers.define :be_within_company do |expected_company|
 
   failure_message do |record|
     "expected record to belong to company #{expected_company.name} (ID: #{expected_company.id}), " \
-    "but belonged to company ID: #{record.company_id}"
+      "but belonged to company ID: #{record.company_id}"
   end
 end
 

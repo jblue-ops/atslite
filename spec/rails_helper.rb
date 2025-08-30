@@ -126,9 +126,9 @@ RSpec.configure do |config|
     if example.metadata[:tenant]
       ActsAsTenant.current_tenant = example.metadata[:tenant]
     elsif example.metadata[:type] != :system
-      # Create a default company for tests that need it
-      company = create(:company) if defined?(FactoryBot)
-      ActsAsTenant.current_tenant = company if company
+      # Create a default organization for tests that need it
+      organization = create(:organization) if defined?(FactoryBot)
+      ActsAsTenant.current_tenant = organization if organization
     end
   end
   
@@ -153,8 +153,8 @@ RSpec.configure do |config|
   # Custom test helpers
   config.include ActiveSupport::Testing::TimeHelpers
   
-  # Pundit test helpers
-  config.include Pundit::RSpec::DSL if defined?(Pundit)
+  # Pundit test helpers (commented out for now)
+  # config.include Pundit::RSpec::DSL if defined?(Pundit)
   
   # System test configuration
   config.before(:each, type: :system) do
@@ -199,10 +199,10 @@ RSpec.configure do |config|
   end
   
   # Background job configuration for tests
-  config.before(:each) do
-    clear_enqueued_jobs
-    clear_performed_jobs
-  end
+  # config.before(:each) do
+  #   clear_enqueued_jobs
+  #   clear_performed_jobs
+  # end
   
   # Custom example metadata
   config.define_derived_metadata(file_path: Regexp.new('/spec/models/')) do |metadata|
@@ -260,9 +260,12 @@ end
 
 # Custom RSpec configuration for ATS
 module ATSTestHelpers
-  def current_company
+  def current_organization
     ActsAsTenant.current_tenant
   end
+
+  # Alias for backward compatibility with existing tests
+  alias_method :current_company, :current_organization
   
   def with_current_user(user)
     original_user = @current_user

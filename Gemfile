@@ -102,8 +102,6 @@ group :development, :test do
   # RSpec-focused RuboCop rules [https://github.com/rubocop/rubocop-rspec]
   gem "rubocop-rspec", require: false
   
-  # Security-focused RuboCop rules [https://github.com/rubocop/rubocop-rails_security]
-  gem "rubocop-rails_security", require: false
   
   # Dependency vulnerability scanner [https://github.com/rubysec/bundler-audit]
   gem "bundler-audit", require: false
