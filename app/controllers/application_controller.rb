@@ -8,9 +8,9 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # Pundit authorization checks
-  after_action :verify_authorized, except: :index
-  after_action :verify_policy_scoped, only: :index
+  # Pundit authorization checks (skip for Devise controllers)
+  after_action :verify_authorized, except: :index, unless: :devise_controller?
+  after_action :verify_policy_scoped, only: :index, unless: :devise_controller?
 
   # Pundit error handling
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
