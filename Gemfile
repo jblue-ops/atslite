@@ -147,4 +147,7 @@ group :test do
   
   # WebMock for stubbing HTTP requests [https://github.com/bblimke/webmock]
   gem "webmock"
+  
+  # Pundit matchers for authorization testing [https://github.com/punditcommunity/pundit-matchers]
+  gem "pundit-matchers"
 end

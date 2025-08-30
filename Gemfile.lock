@@ -269,6 +269,11 @@ GEM
       nio4r (~> 2.0)
     pundit (2.5.0)
       activesupport (>= 3.0.0)
+    pundit-matchers (4.0.0)
+      rspec-core (~> 3.12)
+      rspec-expectations (~> 3.12)
+      rspec-mocks (~> 3.12)
+      rspec-support (~> 3.12)
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.2.0)
@@ -526,6 +531,7 @@ DEPENDENCIES
   public_activity
   puma (>= 5.0)
   pundit
+  pundit-matchers
   rails (~> 8.0.2, >= 8.0.2.1)
   rspec-rails
   rspec_junit_formatter

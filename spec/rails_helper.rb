@@ -153,8 +153,9 @@ RSpec.configure do |config|
   # Custom test helpers
   config.include ActiveSupport::Testing::TimeHelpers
   
-  # Pundit test helpers (commented out for now)
-  # config.include Pundit::RSpec::DSL if defined?(Pundit)
+  # Pundit test helpers and matchers
+  require 'pundit/matchers'
+  config.include Pundit::Matchers
   
   # System test configuration
   config.before(:each, type: :system) do
