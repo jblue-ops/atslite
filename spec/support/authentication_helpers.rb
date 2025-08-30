@@ -96,8 +96,10 @@ module SystemAuthenticationHelpers
   
   # Expect access denied
   def expect_access_denied
-    expect(page).to have_content('Access denied') || 
-    expect(page).to have_content('You are not authorized to perform this action')
+    expect(
+      page.has_content?('Access denied') || 
+      page.has_content?('You are not authorized to perform this action')
+    ).to be_truthy
   end
 end
 

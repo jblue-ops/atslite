@@ -2,62 +2,85 @@ FactoryBot.define do
   factory :user do
     first_name { Faker::Name.first_name }
     last_name { Faker::Name.last_name }
-    email { Faker::Internet.unique.email }
-    password { 'password123' }
-    password_confirmation { 'password123' }
-    confirmed_at { Time.current }
+    role { :readonly }
+    settings { { 'theme' => 'light', 'notifications' => true } }
     company
     
+    # Generate email based on company's email domain
+    email do
+      domain = company.email_domain || 'example.com'
+      "#{Faker::Internet.username}@#{domain}"
+    end
+    
     trait :admin do
-      role { 'admin' }
+      role { :admin }
     end
     
     trait :recruiter do
-      role { 'recruiter' }
+      role { :recruiter }
     end
     
     trait :interviewer do
-      role { 'interviewer' }
-      department { 'Engineering' }
+      role { :interviewer }
     end
     
-    trait :hiring_manager do
-      role { 'hiring_manager' }
-      department { 'Engineering' }
+    trait :readonly do
+      role { :readonly }
     end
     
-    trait :unconfirmed do
-      confirmed_at { nil }
-      confirmation_token { SecureRandom.hex(10) }
+    trait :active do
+      last_login_at { 1.week.ago }
     end
     
     trait :inactive do
-      active { false }
-      deactivated_at { 1.week.ago }
+      last_login_at { 2.months.ago }
     end
     
-    trait :with_profile_picture do
+    trait :recently_active do
+      last_login_at { 2.days.ago }
+    end
+    
+    trait :never_logged_in do
+      last_login_at { nil }
+    end
+    
+    trait :with_avatar do
       after(:build) do |user|
-        user.profile_picture.attach(
-          io: File.open(Rails.root.join('spec', 'fixtures', 'files', 'profile.jpg')),
-          filename: 'profile.jpg',
+        user.avatar.attach(
+          io: StringIO.new('fake avatar data'),
+          filename: 'avatar.jpg',
           content_type: 'image/jpeg'
         )
       end
     end
     
-    # Create user with specific email domain
+    # Create user with specific email domain matching company
     trait :with_company_email do
       transient do
         company_domain { 'example.com' }
       end
       
       email { "#{Faker::Internet.username}@#{company_domain}" }
+      company { association :company, email_domain: company_domain }
     end
     
-    # User with timezone
-    trait :with_timezone do
-      time_zone { 'America/New_York' }
+    trait :with_settings do
+      settings do
+        {
+          'theme' => 'dark',
+          'notifications' => true,
+          'language' => 'en'
+        }
+      end
+    end
+    
+    # User with last login at specific time
+    trait :logged_in_recently do
+      last_login_at { 3.days.ago }
+    end
+    
+    trait :logged_in_long_ago do
+      last_login_at { 60.days.ago }
     end
   end
 end

@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_30_003729) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_30_120007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
-  enable_extension "uuid-ossp"
 
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
@@ -54,524 +54,319 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_003729) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
-    t.uuid "actor_id"
-    t.string "trackable_type", null: false
-    t.uuid "trackable_id", null: false
-    t.string "action", null: false
-    t.string "category", null: false
-    t.text "description"
-    t.json "changes", default: {}
-    t.json "metadata", default: {}
-    t.string "importance", default: "normal"
-    t.boolean "visible_to_candidate", default: false
-    t.string "ip_address"
-    t.string "user_agent"
-    t.string "source"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["action"], name: "index_activities_on_action"
-    t.index ["actor_id", "created_at"], name: "index_activities_on_actor_id_and_created_at"
-    t.index ["actor_id"], name: "index_activities_on_actor_id"
-    t.index ["category"], name: "index_activities_on_category"
-    t.index ["created_at"], name: "index_activities_on_created_at"
-    t.index ["importance"], name: "index_activities_on_importance"
-    t.index ["organization_id", "created_at"], name: "index_activities_on_organization_id_and_created_at"
-    t.index ["organization_id"], name: "index_activities_on_organization_id"
-    t.index ["trackable_type", "trackable_id", "created_at"], name: "idx_on_trackable_type_trackable_id_created_at_85c0aafe3a"
-    t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable"
-    t.index ["visible_to_candidate"], name: "index_activities_on_visible_to_candidate"
-  end
-
   create_table "applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "company_id", null: false
     t.uuid "job_id", null: false
     t.uuid "candidate_id", null: false
-    t.uuid "assigned_recruiter_id"
-    t.uuid "referrer_id"
+    t.uuid "stage_changed_by_id"
     t.string "status", default: "applied", null: false
-    t.string "current_stage", default: "applied", null: false
-    t.integer "stage_order", default: 1
-    t.datetime "stage_changed_at", default: -> { "CURRENT_TIMESTAMP" }
-    t.json "stage_history", default: []
-    t.string "source", null: false
-    t.string "source_details"
-    t.string "application_method"
-    t.text "cover_letter"
-    t.json "questionnaire_responses", default: {}
-    t.json "screening_questions", default: {}
-    t.string "application_resume_filename"
-    t.string "application_resume_url"
-    t.text "application_resume_text"
-    t.decimal "overall_score", precision: 4, scale: 2
-    t.integer "recruiter_rating"
-    t.integer "hiring_manager_rating"
-    t.json "skill_ratings", default: {}
-    t.text "rating_notes"
-    t.integer "email_opens", default: 0
-    t.integer "email_clicks", default: 0
-    t.datetime "last_email_sent_at"
-    t.datetime "last_viewed_job_at"
-    t.datetime "last_response_at"
-    t.decimal "offered_salary", precision: 12, scale: 2
-    t.string "offered_salary_currency", default: "USD"
-    t.json "offer_details", default: {}
-    t.datetime "offer_sent_at"
-    t.datetime "offer_expires_at"
-    t.datetime "offer_accepted_at"
-    t.datetime "offer_declined_at"
-    t.text "decline_reason"
-    t.boolean "starred", default: false
-    t.boolean "flagged", default: false
-    t.text "flag_reason"
-    t.json "tags", default: []
-    t.boolean "gdpr_consent", default: true
-    t.datetime "gdpr_consent_at"
-    t.boolean "background_check_required", default: false
-    t.boolean "background_check_completed", default: false
-    t.datetime "background_check_completed_at"
-    t.datetime "withdrawn_at"
-    t.text "withdrawal_reason"
+    t.string "source", limit: 100
+    t.datetime "applied_at", null: false
+    t.datetime "stage_changed_at"
     t.datetime "rejected_at"
-    t.text "rejection_reason"
-    t.datetime "hired_at"
-    t.datetime "start_date"
-    t.datetime "deleted_at"
+    t.text "cover_letter"
+    t.text "notes"
+    t.integer "rating"
+    t.string "rejection_reason", limit: 255
+    t.integer "salary_offered"
+    t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["assigned_recruiter_id", "status"], name: "index_applications_on_assigned_recruiter_id_and_status"
-    t.index ["assigned_recruiter_id"], name: "index_applications_on_assigned_recruiter_id"
+    t.index ["applied_at"], name: "index_applications_on_applied_at"
+    t.index ["candidate_id", "job_id"], name: "index_applications_on_candidate_and_job_unique", unique: true
+    t.index ["candidate_id", "status"], name: "index_applications_on_candidate_and_status"
     t.index ["candidate_id"], name: "index_applications_on_candidate_id"
-    t.index ["current_stage"], name: "index_applications_on_current_stage"
-    t.index ["deleted_at"], name: "index_applications_on_deleted_at"
-    t.index ["flagged"], name: "index_applications_on_flagged"
-    t.index ["hired_at"], name: "index_applications_on_hired_at"
-    t.index ["job_id", "candidate_id"], name: "index_applications_on_job_id_and_candidate_id", unique: true
-    t.index ["job_id", "current_stage"], name: "index_applications_on_job_id_and_current_stage"
-    t.index ["job_id", "status"], name: "index_applications_on_job_id_and_status"
+    t.index ["company_id", "applied_at"], name: "index_applications_on_company_and_applied_at"
+    t.index ["company_id", "status"], name: "index_applications_on_company_and_status"
+    t.index ["company_id"], name: "index_applications_on_company_id"
+    t.index ["job_id", "applied_at"], name: "index_applications_on_job_and_applied_at"
+    t.index ["job_id", "status"], name: "index_applications_on_job_and_status"
     t.index ["job_id"], name: "index_applications_on_job_id"
-    t.index ["offer_sent_at"], name: "index_applications_on_offer_sent_at"
-    t.index ["overall_score"], name: "index_applications_on_overall_score"
-    t.index ["referrer_id"], name: "index_applications_on_referrer_id"
-    t.index ["source"], name: "index_applications_on_source"
+    t.index ["metadata"], name: "index_applications_on_metadata", using: :gin
+    t.index ["rating"], name: "index_applications_on_rating"
+    t.index ["rejected_at"], name: "index_applications_on_rejected_at"
+    t.index ["salary_offered"], name: "index_applications_on_salary_offered"
     t.index ["stage_changed_at"], name: "index_applications_on_stage_changed_at"
-    t.index ["starred"], name: "index_applications_on_starred"
+    t.index ["stage_changed_by_id"], name: "index_applications_on_stage_changed_by_id"
     t.index ["status"], name: "index_applications_on_status"
+    t.check_constraint "applied_at IS NOT NULL", name: "applications_applied_at_not_null_check"
+    t.check_constraint "rating IS NULL OR rating >= 1 AND rating <= 5", name: "applications_rating_check"
+    t.check_constraint "salary_offered IS NULL OR salary_offered >= 0", name: "applications_salary_offered_check"
+    t.check_constraint "status::text = 'rejected'::text AND rejected_at IS NOT NULL OR status::text <> 'rejected'::text AND rejected_at IS NULL", name: "applications_rejection_consistency_check"
+    t.check_constraint "status::text = ANY (ARRAY['applied'::character varying, 'screening'::character varying, 'phone_interview'::character varying, 'technical_interview'::character varying, 'final_interview'::character varying, 'offer'::character varying, 'accepted'::character varying, 'rejected'::character varying, 'withdrawn'::character varying]::text[])", name: "applications_status_check"
   end
 
   create_table "candidates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "email", null: false
-    t.string "first_name", null: false
-    t.string "last_name", null: false
+    t.string "first_name", limit: 50, null: false
+    t.string "last_name", limit: 100, null: false
     t.string "phone"
-    t.string "location"
-    t.string "time_zone"
-    t.text "address"
+    t.string "location", limit: 100
     t.string "linkedin_url"
     t.string "portfolio_url"
     t.string "github_url"
     t.text "bio"
-    t.string "current_job_title"
-    t.string "current_company"
+    t.string "current_job_title", limit: 100
+    t.string "current_company", limit: 100
+    t.integer "years_of_experience"
     t.decimal "current_salary", precision: 12, scale: 2
-    t.string "current_salary_currency", default: "USD"
+    t.string "current_salary_currency", limit: 3, default: "USD"
     t.decimal "desired_salary_min", precision: 12, scale: 2
     t.decimal "desired_salary_max", precision: 12, scale: 2
-    t.string "desired_salary_currency", default: "USD"
-    t.string "notice_period"
-    t.boolean "open_to_remote", default: false
-    t.boolean "willing_to_relocate", default: false
+    t.string "desired_salary_currency", limit: 3, default: "USD"
     t.string "work_authorization"
-    t.json "skills", default: []
-    t.integer "years_of_experience", default: 0
-    t.json "languages", default: []
-    t.json "certifications", default: []
-    t.string "resume_filename"
-    t.string "resume_content_type"
-    t.integer "resume_file_size"
-    t.text "resume_url"
+    t.string "notice_period"
+    t.boolean "open_to_remote", default: false, null: false
+    t.boolean "willing_to_relocate", default: false, null: false
+    t.boolean "available_for_interview", default: true, null: false
+    t.string "resume_url"
     t.text "resume_text"
-    t.json "additional_documents", default: []
-    t.json "preferred_work_types", default: []
-    t.json "preferred_locations", default: []
-    t.boolean "available_for_interview", default: true
-    t.text "availability_notes"
-    t.boolean "marketing_consent", default: false
+    t.jsonb "skills", default: [], null: false
+    t.jsonb "languages", default: {}, null: false
+    t.jsonb "certifications", default: [], null: false
+    t.jsonb "preferred_work_types", default: [], null: false
+    t.jsonb "preferred_locations", default: [], null: false
+    t.jsonb "additional_documents", default: [], null: false
+    t.boolean "marketing_consent", default: false, null: false
     t.datetime "marketing_consent_at"
-    t.boolean "data_processing_consent", default: true, null: false
+    t.boolean "data_processing_consent", default: false, null: false
     t.datetime "data_processing_consent_at"
-    t.datetime "gdpr_delete_after"
     t.datetime "last_activity_at"
+    t.datetime "gdpr_delete_after"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["additional_documents"], name: "index_candidates_on_additional_documents", using: :gin
+    t.index ["available_for_interview", "deleted_at"], name: "index_candidates_on_available_and_active"
     t.index ["available_for_interview"], name: "index_candidates_on_available_for_interview"
+    t.index ["bio"], name: "index_candidates_on_bio", opclass: :gin_trgm_ops, using: :gin
+    t.index ["certifications"], name: "index_candidates_on_certifications", using: :gin
+    t.index ["created_at"], name: "index_candidates_on_created_at"
+    t.index ["current_company"], name: "index_candidates_on_current_company"
     t.index ["current_job_title"], name: "index_candidates_on_current_job_title"
+    t.index ["current_salary"], name: "index_candidates_on_current_salary"
+    t.index ["data_processing_consent", "data_processing_consent_at"], name: "index_candidates_on_data_consent"
     t.index ["deleted_at"], name: "index_candidates_on_deleted_at"
+    t.index ["desired_salary_max"], name: "index_candidates_on_desired_salary_max"
+    t.index ["desired_salary_min", "desired_salary_max"], name: "index_candidates_on_desired_salary_range"
+    t.index ["desired_salary_min"], name: "index_candidates_on_desired_salary_min"
     t.index ["email"], name: "index_candidates_on_email", unique: true
-    t.index ["first_name", "last_name"], name: "index_candidates_on_first_name_and_last_name"
+    t.index ["first_name", "last_name"], name: "index_candidates_on_full_name"
+    t.index ["first_name"], name: "index_candidates_on_first_name"
     t.index ["gdpr_delete_after"], name: "index_candidates_on_gdpr_delete_after"
+    t.index ["languages"], name: "index_candidates_on_languages", using: :gin
+    t.index ["last_activity_at", "deleted_at"], name: "index_candidates_on_activity_and_active"
     t.index ["last_activity_at"], name: "index_candidates_on_last_activity_at"
+    t.index ["last_name"], name: "index_candidates_on_last_name"
     t.index ["location"], name: "index_candidates_on_location"
+    t.index ["marketing_consent", "marketing_consent_at"], name: "index_candidates_on_marketing_consent"
+    t.index ["notice_period"], name: "index_candidates_on_notice_period"
+    t.index ["open_to_remote", "willing_to_relocate"], name: "index_candidates_on_remote_and_relocate"
     t.index ["open_to_remote"], name: "index_candidates_on_open_to_remote"
+    t.index ["preferred_locations"], name: "index_candidates_on_preferred_locations", using: :gin
+    t.index ["preferred_work_types"], name: "index_candidates_on_preferred_work_types", using: :gin
+    t.index ["resume_text"], name: "index_candidates_on_resume_text", opclass: :gin_trgm_ops, using: :gin
+    t.index ["skills"], name: "index_candidates_on_skills", using: :gin
+    t.index ["willing_to_relocate"], name: "index_candidates_on_willing_to_relocate"
+    t.index ["work_authorization", "years_of_experience"], name: "index_candidates_on_auth_and_experience"
     t.index ["work_authorization"], name: "index_candidates_on_work_authorization"
     t.index ["years_of_experience"], name: "index_candidates_on_years_of_experience"
+    t.check_constraint "(current_salary IS NULL OR current_salary >= 0::numeric) AND (desired_salary_min IS NULL OR desired_salary_min >= 0::numeric) AND (desired_salary_max IS NULL OR desired_salary_max >= 0::numeric)", name: "candidates_salary_positive_check"
+    t.check_constraint "(current_salary_currency IS NULL OR length(current_salary_currency::text) = 3) AND (desired_salary_currency IS NULL OR length(desired_salary_currency::text) = 3)", name: "candidates_currency_format_check"
+    t.check_constraint "bio IS NULL OR length(bio) <= 2000", name: "candidates_bio_length_check"
+    t.check_constraint "data_processing_consent = false AND data_processing_consent_at IS NULL OR data_processing_consent = true AND data_processing_consent_at IS NOT NULL", name: "candidates_data_processing_consent_at_check"
+    t.check_constraint "desired_salary_min IS NULL OR desired_salary_max IS NULL OR desired_salary_max >= desired_salary_min", name: "candidates_desired_salary_range_check"
+    t.check_constraint "email::text ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,}$'::text", name: "candidates_email_format_check"
+    t.check_constraint "gdpr_delete_after IS NULL OR gdpr_delete_after > created_at", name: "candidates_gdpr_delete_future_check"
+    t.check_constraint "github_url IS NULL OR github_url::text ~* '^https?://(www\\.)?github\\.com/[\\w\\-]+/?$'::text", name: "candidates_github_format_check"
+    t.check_constraint "length(TRIM(BOTH FROM first_name)) > 0", name: "candidates_first_name_not_empty_check"
+    t.check_constraint "length(TRIM(BOTH FROM last_name)) > 0", name: "candidates_last_name_not_empty_check"
+    t.check_constraint "linkedin_url IS NULL OR linkedin_url::text ~* '^https?://(www\\.)?linkedin\\.com/in/[\\w\\-]+/?$'::text", name: "candidates_linkedin_format_check"
+    t.check_constraint "marketing_consent = false AND marketing_consent_at IS NULL OR marketing_consent = true AND marketing_consent_at IS NOT NULL", name: "candidates_marketing_consent_at_check"
+    t.check_constraint "notice_period IS NULL OR (notice_period::text = ANY (ARRAY['immediate'::character varying, 'two_weeks'::character varying, 'one_month'::character varying, 'two_months'::character varying, 'three_months'::character varying, 'other'::character varying]::text[]))", name: "candidates_notice_period_check"
+    t.check_constraint "phone IS NULL OR phone::text ~ '^[\\+\\d\\s\\-\\(\\)\\.]+$'::text", name: "candidates_phone_format_check"
+    t.check_constraint "portfolio_url IS NULL OR portfolio_url::text ~* '^https?://'::text", name: "candidates_portfolio_url_format_check"
+    t.check_constraint "work_authorization IS NULL OR (work_authorization::text = ANY (ARRAY['citizen'::character varying, 'permanent_resident'::character varying, 'work_visa'::character varying, 'student_visa'::character varying, 'needs_sponsorship'::character varying]::text[]))", name: "candidates_work_authorization_check"
+    t.check_constraint "years_of_experience IS NULL OR years_of_experience >= 0 AND years_of_experience < 70", name: "candidates_years_experience_check"
   end
 
-  create_table "communications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
-    t.uuid "application_id", null: false
-    t.uuid "sender_id"
-    t.string "communication_type", null: false
-    t.string "direction", null: false
-    t.string "status", default: "sent", null: false
-    t.string "subject"
-    t.text "body_html"
-    t.text "body_text"
-    t.json "attachments", default: []
-    t.json "to_addresses", default: []
-    t.json "cc_addresses", default: []
-    t.json "bcc_addresses", default: []
-    t.string "from_address"
-    t.string "reply_to_address"
-    t.string "template_name"
-    t.json "template_variables", default: {}
-    t.boolean "automated", default: false
-    t.string "automation_trigger"
-    t.datetime "sent_at"
-    t.datetime "delivered_at"
-    t.datetime "opened_at"
-    t.datetime "clicked_at"
-    t.integer "open_count", default: 0
-    t.integer "click_count", default: 0
-    t.json "click_urls", default: []
-    t.string "phone_number"
-    t.integer "call_duration_seconds"
-    t.string "call_outcome"
-    t.text "call_notes"
-    t.string "external_id"
-    t.string "external_service"
-    t.json "external_metadata", default: {}
-    t.string "thread_id"
-    t.uuid "in_reply_to_id"
-    t.datetime "scheduled_for"
-    t.boolean "is_scheduled", default: false
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["application_id", "communication_type"], name: "index_communications_on_application_id_and_communication_type"
-    t.index ["application_id", "created_at"], name: "index_communications_on_application_id_and_created_at"
-    t.index ["application_id"], name: "index_communications_on_application_id"
-    t.index ["automated"], name: "index_communications_on_automated"
-    t.index ["communication_type"], name: "index_communications_on_communication_type"
-    t.index ["deleted_at"], name: "index_communications_on_deleted_at"
-    t.index ["direction"], name: "index_communications_on_direction"
-    t.index ["in_reply_to_id"], name: "index_communications_on_in_reply_to_id"
-    t.index ["opened_at"], name: "index_communications_on_opened_at"
-    t.index ["organization_id", "sent_at"], name: "index_communications_on_organization_id_and_sent_at"
-    t.index ["organization_id"], name: "index_communications_on_organization_id"
-    t.index ["scheduled_for"], name: "index_communications_on_scheduled_for"
-    t.index ["sender_id"], name: "index_communications_on_sender_id"
-    t.index ["sent_at"], name: "index_communications_on_sent_at"
-    t.index ["status"], name: "index_communications_on_status"
-    t.index ["template_name"], name: "index_communications_on_template_name"
-    t.index ["thread_id"], name: "index_communications_on_thread_id"
-  end
-
-  create_table "departments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
-    t.uuid "parent_department_id"
+  create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
-    t.text "description"
-    t.string "code"
-    t.boolean "active", default: true, null: false
-    t.datetime "deleted_at"
+    t.string "slug", null: false
+    t.string "email_domain"
+    t.integer "subscription_plan", default: 0, null: false
+    t.jsonb "settings", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_departments_on_active"
-    t.index ["deleted_at"], name: "index_departments_on_deleted_at"
-    t.index ["organization_id", "code"], name: "index_departments_on_organization_id_and_code", unique: true
-    t.index ["organization_id", "name"], name: "index_departments_on_organization_id_and_name", unique: true
-    t.index ["organization_id"], name: "index_departments_on_organization_id"
-    t.index ["parent_department_id"], name: "index_departments_on_parent_department_id"
-  end
-
-  create_table "interview_participants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "interview_id", null: false
-    t.uuid "user_id", null: false
-    t.string "role", null: false
-    t.boolean "required", default: true
-    t.string "response_status", default: "pending"
-    t.datetime "responded_at"
-    t.text "response_notes"
-    t.text "feedback"
-    t.integer "rating"
-    t.json "skill_ratings", default: {}
-    t.boolean "recommend_hire"
-    t.text "recommendation_notes"
-    t.boolean "feedback_submitted", default: false
-    t.datetime "feedback_submitted_at"
-    t.datetime "joined_at"
-    t.datetime "left_at"
-    t.integer "participation_minutes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["feedback_submitted"], name: "index_interview_participants_on_feedback_submitted"
-    t.index ["interview_id", "user_id"], name: "index_interview_participants_on_interview_id_and_user_id", unique: true
-    t.index ["interview_id"], name: "index_interview_participants_on_interview_id"
-    t.index ["rating"], name: "index_interview_participants_on_rating"
-    t.index ["required"], name: "index_interview_participants_on_required"
-    t.index ["response_status"], name: "index_interview_participants_on_response_status"
-    t.index ["role"], name: "index_interview_participants_on_role"
-    t.index ["user_id"], name: "index_interview_participants_on_user_id"
+    t.index ["email_domain"], name: "index_companies_on_email_domain"
+    t.index ["name"], name: "index_companies_on_name"
+    t.index ["settings"], name: "index_companies_on_settings", using: :gin
+    t.index ["slug"], name: "index_companies_on_slug", unique: true
+    t.index ["subscription_plan"], name: "index_companies_on_subscription_plan"
+    t.check_constraint "email_domain IS NULL OR email_domain::text ~ '^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?.[a-zA-Z]{2,}$'::text", name: "companies_email_domain_format_check"
+    t.check_constraint "slug::text ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'::text", name: "companies_slug_format_check"
+    t.check_constraint "subscription_plan = ANY (ARRAY[0, 1, 2])", name: "companies_subscription_plan_check"
   end
 
   create_table "interviews", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "application_id", null: false
-    t.uuid "organizer_id", null: false
-    t.uuid "primary_interviewer_id"
-    t.string "title", null: false
-    t.text "description"
+    t.uuid "interviewer_id", null: false
+    t.uuid "scheduled_by_id"
     t.string "interview_type", null: false
-    t.string "stage", null: false
     t.string "status", default: "scheduled", null: false
-    t.datetime "scheduled_start_time", null: false
-    t.datetime "scheduled_end_time", null: false
-    t.datetime "actual_start_time"
-    t.datetime "actual_end_time"
-    t.integer "duration_minutes", null: false
-    t.integer "actual_duration_minutes"
-    t.string "location_type", null: false
-    t.string "meeting_url"
-    t.text "meeting_details"
-    t.string "location_address"
-    t.json "technical_requirements", default: {}
-    t.json "interview_kit", default: {}
-    t.text "interviewer_notes"
-    t.text "candidate_instructions"
-    t.json "focus_areas", default: []
-    t.text "interview_notes"
-    t.text "interviewer_feedback"
-    t.integer "overall_rating"
-    t.json "skill_assessments", default: {}
-    t.json "scoring_rubric", default: {}
-    t.boolean "recommend_hire", default: false
-    t.text "recommendation_notes"
-    t.text "next_steps"
-    t.boolean "requires_followup", default: false
-    t.datetime "followup_due_date"
-    t.text "followup_notes"
-    t.boolean "reminder_sent", default: false
-    t.datetime "reminder_sent_at"
-    t.boolean "confirmation_received", default: false
-    t.datetime "confirmation_received_at"
-    t.text "candidate_preparation_notes"
-    t.json "attendee_emails", default: []
-    t.string "calendar_event_id"
-    t.boolean "feedback_submitted", default: false
-    t.datetime "feedback_submitted_at"
-    t.datetime "deleted_at"
+    t.datetime "scheduled_at", null: false
+    t.integer "duration_minutes", default: 60
+    t.string "location", limit: 255
+    t.string "video_link", limit: 500
+    t.string "calendar_event_id", limit: 100
+    t.text "feedback"
+    t.integer "rating"
+    t.string "decision"
+    t.datetime "completed_at"
+    t.text "notes"
+    t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["application_id", "stage"], name: "index_interviews_on_application_id_and_stage"
+    t.index ["application_id", "scheduled_at"], name: "index_interviews_on_application_and_scheduled_at"
+    t.index ["application_id", "status"], name: "index_interviews_on_application_and_status"
     t.index ["application_id"], name: "index_interviews_on_application_id"
-    t.index ["deleted_at"], name: "index_interviews_on_deleted_at"
-    t.index ["feedback_submitted"], name: "index_interviews_on_feedback_submitted"
+    t.index ["completed_at"], name: "index_interviews_on_completed_at"
+    t.index ["decision"], name: "index_interviews_on_decision"
+    t.index ["duration_minutes"], name: "index_interviews_on_duration_minutes"
     t.index ["interview_type"], name: "index_interviews_on_interview_type"
-    t.index ["location_type"], name: "index_interviews_on_location_type"
-    t.index ["organizer_id"], name: "index_interviews_on_organizer_id"
-    t.index ["overall_rating"], name: "index_interviews_on_overall_rating"
-    t.index ["primary_interviewer_id", "status"], name: "index_interviews_on_primary_interviewer_id_and_status"
-    t.index ["primary_interviewer_id"], name: "index_interviews_on_primary_interviewer_id"
-    t.index ["recommend_hire"], name: "index_interviews_on_recommend_hire"
-    t.index ["scheduled_start_time", "status"], name: "index_interviews_on_scheduled_start_time_and_status"
-    t.index ["scheduled_start_time"], name: "index_interviews_on_scheduled_start_time"
-    t.index ["stage"], name: "index_interviews_on_stage"
+    t.index ["interviewer_id", "scheduled_at"], name: "index_interviews_on_interviewer_and_scheduled_at"
+    t.index ["interviewer_id", "status"], name: "index_interviews_on_interviewer_and_status"
+    t.index ["interviewer_id"], name: "index_interviews_on_interviewer_id"
+    t.index ["metadata"], name: "index_interviews_on_metadata", using: :gin
+    t.index ["rating"], name: "index_interviews_on_rating"
+    t.index ["scheduled_at", "status"], name: "index_interviews_on_date_and_status"
+    t.index ["scheduled_at"], name: "index_interviews_on_scheduled_at"
+    t.index ["scheduled_by_id", "scheduled_at"], name: "index_interviews_on_scheduled_by_and_date"
+    t.index ["scheduled_by_id"], name: "index_interviews_on_scheduled_by_id"
+    t.index ["status", "scheduled_at"], name: "index_interviews_on_status_and_scheduled_at"
     t.index ["status"], name: "index_interviews_on_status"
+    t.check_constraint "decision IS NULL OR (decision::text = ANY (ARRAY['strong_yes'::character varying, 'yes'::character varying, 'maybe'::character varying, 'no'::character varying, 'strong_no'::character varying]::text[]))", name: "interviews_decision_check"
+    t.check_constraint "duration_minutes IS NULL OR duration_minutes > 0", name: "interviews_duration_check"
+    t.check_constraint "interview_type::text = ANY (ARRAY['phone'::character varying, 'video'::character varying, 'onsite'::character varying, 'technical'::character varying, 'behavioral'::character varying, 'panel'::character varying]::text[])", name: "interviews_interview_type_check"
+    t.check_constraint "rating IS NULL OR rating >= 1 AND rating <= 5", name: "interviews_rating_check"
+    t.check_constraint "scheduled_at IS NOT NULL", name: "interviews_scheduled_at_not_null_check"
+    t.check_constraint "status::text = 'completed'::text AND completed_at IS NOT NULL OR status::text <> 'completed'::text AND completed_at IS NULL", name: "interviews_completion_consistency_check"
+    t.check_constraint "status::text = ANY (ARRAY['scheduled'::character varying, 'confirmed'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'no_show'::character varying]::text[])", name: "interviews_status_check"
   end
 
   create_table "jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
-    t.uuid "department_id"
-    t.uuid "hiring_manager_id"
     t.string "title", null: false
-    t.text "description", null: false
+    t.text "description"
     t.text "requirements"
-    t.text "benefits"
+    t.uuid "company_id", null: false
+    t.string "department"
+    t.uuid "hiring_manager_id"
     t.string "employment_type", null: false
+    t.string "experience_level", null: false
     t.string "work_location_type", null: false
-    t.string "location"
-    t.string "experience_level"
+    t.string "location", limit: 100
     t.decimal "salary_min", precision: 12, scale: 2
     t.decimal "salary_max", precision: 12, scale: 2
-    t.string "salary_currency", default: "USD"
+    t.string "salary_currency", limit: 3
     t.string "salary_period"
     t.string "status", default: "draft", null: false
-    t.json "pipeline_stages", default: [{"name" => "Applied", "type" => "applied", "order" => 1}, {"name" => "Phone Screen", "type" => "phone_screen", "order" => 2}, {"name" => "Technical Interview", "type" => "technical", "order" => 3}, {"name" => "Final Interview", "type" => "final", "order" => 4}, {"name" => "Offer", "type" => "offer", "order" => 5}, {"name" => "Hired", "type" => "hired", "order" => 6}], null: false
+    t.boolean "active", default: true, null: false
+    t.boolean "confidential", default: false, null: false
+    t.boolean "remote_work_eligible", default: false, null: false
     t.datetime "posted_at"
     t.datetime "application_deadline"
     t.datetime "target_start_date"
     t.string "urgency"
     t.integer "openings_count", default: 1
-    t.json "required_skills", default: []
-    t.json "nice_to_have_skills", default: []
-    t.string "referral_bonus_amount"
-    t.boolean "confidential", default: false
-    t.boolean "remote_work_eligible", default: false
-    t.text "internal_notes"
-    t.boolean "active", default: true, null: false
+    t.string "referral_bonus_amount", limit: 50
+    t.text "benefits"
+    t.text "company_overview"
+    t.jsonb "required_skills", default: [], null: false
+    t.jsonb "nice_to_have_skills", default: [], null: false
+    t.jsonb "pipeline_stages", default: [], null: false
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["active", "deleted_at"], name: "index_jobs_on_active_and_not_deleted"
     t.index ["active"], name: "index_jobs_on_active"
     t.index ["application_deadline"], name: "index_jobs_on_application_deadline"
+    t.index ["company_id", "status"], name: "index_jobs_on_company_and_status"
+    t.index ["company_id"], name: "index_jobs_on_company_id"
+    t.index ["confidential"], name: "index_jobs_on_confidential"
     t.index ["deleted_at"], name: "index_jobs_on_deleted_at"
-    t.index ["department_id"], name: "index_jobs_on_department_id"
+    t.index ["department"], name: "index_jobs_on_department"
+    t.index ["description"], name: "index_jobs_on_description", opclass: :gin_trgm_ops, using: :gin
+    t.index ["employment_type", "experience_level"], name: "index_jobs_on_employment_and_experience"
     t.index ["employment_type"], name: "index_jobs_on_employment_type"
     t.index ["experience_level"], name: "index_jobs_on_experience_level"
     t.index ["hiring_manager_id"], name: "index_jobs_on_hiring_manager_id"
-    t.index ["organization_id", "department_id"], name: "index_jobs_on_organization_id_and_department_id"
-    t.index ["organization_id", "status"], name: "index_jobs_on_organization_id_and_status"
-    t.index ["organization_id"], name: "index_jobs_on_organization_id"
+    t.index ["location"], name: "index_jobs_on_location"
+    t.index ["nice_to_have_skills"], name: "index_jobs_on_nice_to_have_skills", using: :gin
+    t.index ["pipeline_stages"], name: "index_jobs_on_pipeline_stages", using: :gin
     t.index ["posted_at"], name: "index_jobs_on_posted_at"
+    t.index ["remote_work_eligible"], name: "index_jobs_on_remote_work_eligible"
+    t.index ["required_skills"], name: "index_jobs_on_required_skills", using: :gin
+    t.index ["requirements"], name: "index_jobs_on_requirements", opclass: :gin_trgm_ops, using: :gin
+    t.index ["salary_currency"], name: "index_jobs_on_salary_currency"
+    t.index ["salary_max"], name: "index_jobs_on_salary_max"
+    t.index ["salary_min", "salary_max", "salary_currency"], name: "index_jobs_on_salary_range"
+    t.index ["salary_min"], name: "index_jobs_on_salary_min"
+    t.index ["status", "posted_at"], name: "index_jobs_on_status_and_posted_date"
     t.index ["status"], name: "index_jobs_on_status"
     t.index ["title"], name: "index_jobs_on_title"
     t.index ["urgency"], name: "index_jobs_on_urgency"
+    t.index ["work_location_type", "remote_work_eligible"], name: "index_jobs_on_location_type_and_remote"
     t.index ["work_location_type"], name: "index_jobs_on_work_location_type"
-  end
-
-  create_table "notes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
-    t.uuid "author_id", null: false
-    t.string "notable_type", null: false
-    t.uuid "notable_id", null: false
-    t.text "content", null: false
-    t.string "note_type", default: "general"
-    t.string "visibility", default: "team"
-    t.boolean "pinned", default: false
-    t.string "importance", default: "normal"
-    t.json "mentioned_user_ids", default: []
-    t.boolean "notifications_sent", default: false
-    t.boolean "requires_followup", default: false
-    t.datetime "followup_due_date"
-    t.boolean "followup_completed", default: false
-    t.datetime "followup_completed_at"
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["author_id", "created_at"], name: "index_notes_on_author_id_and_created_at"
-    t.index ["author_id"], name: "index_notes_on_author_id"
-    t.index ["created_at"], name: "index_notes_on_created_at"
-    t.index ["deleted_at"], name: "index_notes_on_deleted_at"
-    t.index ["followup_due_date"], name: "index_notes_on_followup_due_date"
-    t.index ["importance"], name: "index_notes_on_importance"
-    t.index ["notable_type", "notable_id", "created_at"], name: "index_notes_on_notable_type_and_notable_id_and_created_at"
-    t.index ["notable_type", "notable_id"], name: "index_notes_on_notable"
-    t.index ["note_type"], name: "index_notes_on_note_type"
-    t.index ["organization_id", "created_at"], name: "index_notes_on_organization_id_and_created_at"
-    t.index ["organization_id"], name: "index_notes_on_organization_id"
-    t.index ["pinned"], name: "index_notes_on_pinned"
-    t.index ["requires_followup"], name: "index_notes_on_requires_followup"
-    t.index ["visibility"], name: "index_notes_on_visibility"
-  end
-
-  create_table "organizations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
-    t.string "website_url"
-    t.string "industry"
-    t.string "size_category"
-    t.string "logo_url"
-    t.json "settings", default: {}
-    t.boolean "active", default: true, null: false
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_organizations_on_active"
-    t.index ["deleted_at"], name: "index_organizations_on_deleted_at"
-    t.index ["industry"], name: "index_organizations_on_industry"
-    t.index ["name"], name: "index_organizations_on_name"
+    t.check_constraint "(salary_min IS NULL OR salary_min >= 0::numeric) AND (salary_max IS NULL OR salary_max >= 0::numeric)", name: "jobs_salary_positive_check"
+    t.check_constraint "employment_type::text = ANY (ARRAY['full_time'::character varying, 'part_time'::character varying, 'contract'::character varying, 'internship'::character varying, 'temporary'::character varying]::text[])", name: "jobs_employment_type_check"
+    t.check_constraint "experience_level::text = ANY (ARRAY['entry'::character varying, 'mid'::character varying, 'senior'::character varying, 'executive'::character varying]::text[])", name: "jobs_experience_level_check"
+    t.check_constraint "length(TRIM(BOTH FROM title)) >= 3", name: "jobs_title_not_empty_check"
+    t.check_constraint "openings_count IS NULL OR openings_count > 0", name: "jobs_openings_count_positive_check"
+    t.check_constraint "posted_at IS NULL OR application_deadline IS NULL OR application_deadline > posted_at", name: "jobs_posted_before_deadline_check"
+    t.check_constraint "posted_at IS NULL OR target_start_date IS NULL OR target_start_date > posted_at", name: "jobs_posted_before_start_check"
+    t.check_constraint "salary_currency IS NULL OR length(salary_currency::text) = 3", name: "jobs_currency_format_check"
+    t.check_constraint "salary_min IS NULL OR salary_max IS NULL OR salary_max >= salary_min", name: "jobs_salary_range_check"
+    t.check_constraint "salary_period IS NULL OR (salary_period::text = ANY (ARRAY['hourly'::character varying, 'daily'::character varying, 'weekly'::character varying, 'monthly'::character varying, 'annually'::character varying]::text[]))", name: "jobs_salary_period_check"
+    t.check_constraint "status::text <> 'published'::text OR posted_at IS NOT NULL", name: "jobs_published_has_posted_at_check"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'published'::character varying, 'paused'::character varying, 'closed'::character varying, 'archived'::character varying]::text[])", name: "jobs_status_check"
+    t.check_constraint "urgency IS NULL OR (urgency::text = ANY (ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'urgent'::character varying]::text[]))", name: "jobs_urgency_check"
+    t.check_constraint "work_location_type::text = ANY (ARRAY['on_site'::character varying, 'hybrid'::character varying, 'remote'::character varying]::text[])", name: "jobs_work_location_type_check"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "organization_id", null: false
+    t.uuid "company_id", null: false
     t.string "email", null: false
     t.string "first_name", null: false
     t.string "last_name", null: false
-    t.string "role", null: false
-    t.string "phone"
-    t.string "title"
-    t.string "avatar_url"
-    t.text "bio"
-    t.string "time_zone", default: "UTC"
-    t.string "password_digest"
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "last_sign_in_at"
-    t.string "last_sign_in_ip"
-    t.json "permissions", default: {}
-    t.boolean "active", default: true, null: false
-    t.boolean "email_verified", default: false, null: false
-    t.datetime "email_verified_at"
-    t.datetime "invited_at"
-    t.datetime "deleted_at"
+    t.integer "role", default: 0, null: false
+    t.jsonb "settings", default: {}, null: false
+    t.datetime "last_login_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "encrypted_password", default: "", null: false
-    t.string "confirmation_token"
-    t.datetime "confirmed_at"
-    t.datetime "confirmation_sent_at"
-    t.string "unconfirmed_email"
-    t.integer "failed_attempts", default: 0, null: false
-    t.string "unlock_token"
-    t.datetime "locked_at"
-    t.integer "sign_in_count", default: 0, null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "remember_created_at"
-    t.string "invitation_token"
-    t.datetime "invitation_created_at"
-    t.datetime "invitation_sent_at"
-    t.datetime "invitation_accepted_at"
-    t.integer "invitation_limit"
-    t.integer "invitations_count", default: 0
-    t.uuid "invited_by_id"
-    t.string "current_sign_in_ip"
-    t.index ["active"], name: "index_users_on_active"
-    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
-    t.index ["deleted_at"], name: "index_users_on_deleted_at"
-    t.index ["email"], name: "index_users_on_email"
-    t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
-    t.index ["organization_id", "email"], name: "index_users_on_organization_id_and_email", unique: true
-    t.index ["organization_id"], name: "index_users_on_organization_id"
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["company_id", "email"], name: "index_users_on_company_and_email", unique: true
+    t.index ["company_id", "role"], name: "index_users_on_company_and_role"
+    t.index ["company_id"], name: "index_users_on_company_id"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["first_name", "last_name"], name: "index_users_on_full_name"
+    t.index ["last_login_at"], name: "index_users_on_last_login_at"
     t.index ["role"], name: "index_users_on_role"
-    t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
+    t.index ["settings"], name: "index_users_on_settings", using: :gin
+    t.check_constraint "email::text ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,}$'::text", name: "users_email_format_check"
+    t.check_constraint "length(TRIM(BOTH FROM first_name)) > 0", name: "users_first_name_not_empty_check"
+    t.check_constraint "length(TRIM(BOTH FROM last_name)) > 0", name: "users_last_name_not_empty_check"
+    t.check_constraint "role = ANY (ARRAY[0, 1, 2, 3])", name: "users_role_check"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "activities", "organizations"
-  add_foreign_key "activities", "users", column: "actor_id"
   add_foreign_key "applications", "candidates"
+  add_foreign_key "applications", "companies"
   add_foreign_key "applications", "jobs"
-  add_foreign_key "applications", "users", column: "assigned_recruiter_id"
-  add_foreign_key "applications", "users", column: "referrer_id"
-  add_foreign_key "communications", "applications"
-  add_foreign_key "communications", "communications", column: "in_reply_to_id"
-  add_foreign_key "communications", "organizations"
-  add_foreign_key "communications", "users", column: "sender_id"
-  add_foreign_key "departments", "departments", column: "parent_department_id"
-  add_foreign_key "departments", "organizations"
-  add_foreign_key "interview_participants", "interviews"
-  add_foreign_key "interview_participants", "users"
+  add_foreign_key "applications", "users", column: "stage_changed_by_id"
   add_foreign_key "interviews", "applications"
-  add_foreign_key "interviews", "users", column: "organizer_id"
-  add_foreign_key "interviews", "users", column: "primary_interviewer_id"
-  add_foreign_key "jobs", "departments"
-  add_foreign_key "jobs", "organizations"
+  add_foreign_key "interviews", "users", column: "interviewer_id"
+  add_foreign_key "interviews", "users", column: "scheduled_by_id"
+  add_foreign_key "jobs", "companies"
   add_foreign_key "jobs", "users", column: "hiring_manager_id"
-  add_foreign_key "notes", "organizations"
-  add_foreign_key "notes", "users", column: "author_id"
-  add_foreign_key "users", "organizations"
-  add_foreign_key "users", "users", column: "invited_by_id"
+  add_foreign_key "users", "companies"
 end

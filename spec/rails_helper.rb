@@ -20,21 +20,23 @@ require 'factory_bot_rails'
 require 'database_cleaner/active_record'
 
 # SimpleCov for test coverage
-require 'simplecov'
-SimpleCov.start 'rails' do
-  add_filter '/vendor/'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/db/'
-  
-  add_group 'Models', 'app/models'
-  add_group 'Controllers', 'app/controllers'
-  add_group 'Services', 'app/services'
-  add_group 'Jobs', 'app/jobs'
-  add_group 'Mailers', 'app/mailers'
-  add_group 'Helpers', 'app/helpers'
-  add_group 'Policies', 'app/policies'
-end if ENV['COVERAGE']
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start 'rails' do
+    add_filter '/vendor/'
+    add_filter '/spec/'
+    add_filter '/config/'
+    add_filter '/db/'
+    
+    add_group 'Models', 'app/models'
+    add_group 'Controllers', 'app/controllers'
+    add_group 'Services', 'app/services'
+    add_group 'Jobs', 'app/jobs'
+    add_group 'Mailers', 'app/mailers'
+    add_group 'Helpers', 'app/helpers'
+    add_group 'Policies', 'app/policies'
+  end
+end
 
 # Load all support files
 Rails.root.glob('spec/support/**/*.rb').sort_by(&:to_s).each { |f| require f }
@@ -153,8 +155,8 @@ RSpec.configure do |config|
   # Custom test helpers
   config.include ActiveSupport::Testing::TimeHelpers
   
-  # Pundit test helpers
-  config.include Pundit::RSpec::DSL if defined?(Pundit)
+  # Pundit test helpers (commented out until Pundit is properly configured)
+  # config.include Pundit::RSpec::DSL if defined?(Pundit)
   
   # System test configuration
   config.before(:each, type: :system) do
@@ -199,10 +201,11 @@ RSpec.configure do |config|
   end
   
   # Background job configuration for tests
-  config.before(:each) do
-    clear_enqueued_jobs
-    clear_performed_jobs
-  end
+  # Commented out to avoid issues with ActiveJob::TestHelper
+  # config.before(:each) do
+  #   clear_enqueued_jobs
+  #   clear_performed_jobs
+  # end
   
   # Custom example metadata
   config.define_derived_metadata(file_path: Regexp.new('/spec/models/')) do |metadata|

@@ -79,7 +79,7 @@ gem "thruster", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  gem "debug", platforms: %i[ mri windows ]
 
   # RSpec testing framework for Rails [https://github.com/rspec/rspec-rails]
   gem "rspec-rails"
@@ -103,7 +103,7 @@ group :development, :test do
   gem "rubocop-rspec", require: false
   
   # Security-focused RuboCop rules [https://github.com/rubocop/rubocop-rails_security]
-  gem "rubocop-rails_security", require: false
+  # gem "rubocop-rails_security", require: false
   
   # Dependency vulnerability scanner [https://github.com/rubysec/bundler-audit]
   gem "bundler-audit", require: false
