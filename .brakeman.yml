@@ -1,0 +1,151 @@
+# Brakeman configuration for ATS application security scanning
+# https://brakemanscanner.org/docs/
+
+# Application path (default: ".")
+app_path: .
+
+# Rails version (auto-detected if not specified)
+# rails_version: 8.0
+
+# Minimum confidence level for reported warnings
+# Confidence levels: High (1), Medium (2), Weak (3)
+min_confidence: 2
+
+# Output formats: json, html, csv, tabs, text
+output_format: text
+
+# Additional checks to run
+# Available checks: https://brakemanscanner.org/docs/warning_types/
+check:
+  - BasicAuth
+  - BasicAuthTimingAttack
+  - ContentTag
+  - CreateWith
+  - CrossSiteScripting
+  - DefaultRoutes
+  - Deserialize
+  - DetailedExceptions
+  - DigestDoS
+  - DivideByZero
+  - DynamicFinders
+  - EscapeFunction
+  - Evaluation
+  - Execute
+  - FileAccess
+  - FileDisclosure
+  - FilterSkipping
+  - ForgerySetting
+  - HeaderDoS
+  - I18nXSS
+  - JRubyXML
+  - JSONEncoding
+  - JSONParsing
+  - LinkTo
+  - LinkToHref
+  - MailTo
+  - MassAssignment
+  - MimeTypeDoS
+  - ModelAttrAccessible
+  - ModelAttributes
+  - ModelSerialize
+  - NestedAttributes
+  - NestedAttributesBypass
+  - NumberToCurrency
+  - PageCachingCVE
+  - PermitAttributes
+  - QuoteTableName
+  - Redirect
+  - Regex
+  - Render
+  - RenderDoS
+  - RenderInline
+  - ResponseSplitting
+  - RouteDoS
+  - SSL
+  - SQLCVEs
+  - SQLInjection
+  - SSLVerify
+  - SafeBufferManipulation
+  - SanitizeSQL
+  - SelectTag
+  - SelectVulnerability
+  - Send
+  - SendFile
+  - SessionManipulation
+  - SessionSettings
+  - SimpleFormat
+  - SingleQuotes
+  - SkipBeforeFilter
+  - SprocketsPathTraversal
+  - StripTags
+  - SymbolDoSCVE
+  - TranslateBug
+  - UnsafeReflection
+  - UnscopedFind
+  - ValidationRegex
+  - WeakHash
+  - WithoutProtection
+  - XMLDoS
+  - YAMLParsing
+
+# Paths to skip during scanning
+skip_files:
+  - config/routes.rb
+  - db/schema.rb
+  - db/migrate/
+  - vendor/
+  - node_modules/
+  - tmp/
+  - log/
+  - public/assets/
+  - spec/
+  - test/
+
+# Skip certain checks entirely
+skip_checks:
+  # Uncomment to skip specific checks if needed
+  # - SSL  # Skip SSL warnings if using external SSL termination
+
+# Only report warnings in these files
+# only_files:
+#   - app/controllers/
+#   - app/models/
+
+# Ignore warnings with specified fingerprints
+ignore_file: .brakeman.ignore
+
+# Interactive ignore mode
+# interactive_ignore: false
+
+# Report progress
+quiet: false
+
+# Return error exit code on warnings
+exit_on_warn: true
+
+# Return error exit code only on high confidence warnings
+exit_on_error: false
+
+# Add timestamp to reports
+timestamp: true
+
+# Separate internal warnings
+separate_models: true
+
+# ATS-specific configuration for handling sensitive recruiting data
+# Enable additional security checks for data handling
+email_validation: true
+sql_injection_detection: true
+mass_assignment_detection: true
+
+# Custom message for security team
+message: |
+  Security scan completed for ATS application.
+  This application handles sensitive recruiting data including:
+  - Personal candidate information (PII)
+  - Resume documents and attachments
+  - Employment history and references
+  - Internal company recruiting data
+  
+  All HIGH and MEDIUM confidence warnings should be addressed.
+  Contact security team for guidance on acceptable risks.

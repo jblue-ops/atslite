@@ -1,0 +1,69 @@
+FROM ruby:3.4.5-slim
+
+# Install dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    curl \
+    git \
+    libpq-dev \
+    libvips \
+    libyaml-dev \
+    nodejs \
+    npm \
+    pkg-config \
+    postgresql-client \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Set working directory
+WORKDIR /rails
+
+# Set development environment
+ENV RAILS_ENV=development \
+    BUNDLE_PATH=/usr/local/bundle \
+    BOOTSNAP_CACHE_DIR=/tmp/cache
+
+# Install bundler
+RUN gem install bundler
+
+# Copy Gemfiles first for better Docker layer caching
+COPY Gemfile Gemfile.lock ./
+
+# Install gems
+RUN bundle install
+
+# Copy package.json if it exists (for frontend dependencies)
+COPY package*.json ./
+RUN npm install || true
+
+# Copy the application code
+COPY . .
+
+# Create cache and tmp directories
+RUN mkdir -p tmp/cache tmp/pids tmp/sockets
+
+# Precompile bootsnap cache
+RUN bundle exec bootsnap precompile --gemfile app/ lib/ || true
+
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Remove any pre-existing server.pid\n\
+rm -f tmp/pids/server.pid\n\
+\n\
+# Create database if it doesn'\''t exist\n\
+bundle exec rails db:create db:migrate || true\n\
+\n\
+# Execute the main command\n\
+exec "$@"' > /usr/bin/entrypoint.sh && \
+    chmod +x /usr/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+
+# Expose port 3000
+EXPOSE 3000
+
+# Default command
+CMD ["bin/dev"]

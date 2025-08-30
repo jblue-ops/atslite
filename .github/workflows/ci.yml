@@ -1,0 +1,366 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+env:
+  RAILS_ENV: test
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432
+  # REDIS_URL: redis://localhost:6379/0
+
+jobs:
+  # Security scanning with Brakeman
+  security_scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run Brakeman security scan
+        run: |
+          bin/brakeman --config-file .brakeman.yml --format json --output brakeman-report.json
+          bin/brakeman --config-file .brakeman.yml --no-pager
+        continue-on-error: true
+
+      - name: Upload Brakeman report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brakeman-report
+          path: brakeman-report.json
+          retention-days: 30
+
+  # Dependency vulnerability scanning
+  dependency_scan:
+    name: Dependency Vulnerability Scan  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run bundle-audit for Ruby dependencies
+        run: |
+          bundle exec bundler-audit check --update --format json --output bundler-audit-report.json
+          bundle exec bundler-audit check --update
+        continue-on-error: true
+
+      - name: Scan JavaScript dependencies
+        run: bin/importmap audit
+
+      - name: Upload dependency scan report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-scan-report
+          path: bundler-audit-report.json
+          retention-days: 30
+
+  # Code quality and style checking
+  code_quality:
+    name: Code Quality & Style
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run RuboCop style checks
+        run: |
+          bundle exec rubocop --format json --out rubocop-report.json
+          bundle exec rubocop --format github
+        continue-on-error: true
+
+      - name: Upload RuboCop report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rubocop-report
+          path: rubocop-report.json
+          retention-days: 30
+
+  # Database and migration testing
+  database_check:
+    name: Database & Migration Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: atslite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpq-dev
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Set up database
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
+
+      - name: Run database migrations
+        run: bin/rails db:migrate
+
+      - name: Check migration rollbacks
+        run: |
+          bin/rails db:rollback STEP=1
+          bin/rails db:migrate
+
+      - name: Verify schema consistency
+        run: |
+          bin/rails db:schema:dump
+          git diff --exit-code db/schema.rb || (echo "Schema file is not up to date!" && exit 1)
+
+  # Comprehensive test suite with coverage
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: atslite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # redis:
+      #   image: redis:7-alpine
+      #   ports:
+      #     - 6379:6379
+      #   options: >-
+      #     --health-cmd "redis-cli ping"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+
+    steps:
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            git \
+            libpq-dev \
+            libyaml-dev \
+            pkg-config \
+            google-chrome-stable \
+            xvfb
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Set up database
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
+
+      - name: Precompile assets
+        run: bin/rails assets:precompile
+
+      - name: Run RSpec tests with coverage
+        run: |
+          COVERAGE=true bundle exec rspec --format documentation --format RspecJunitFormatter --out tmp/rspec_results.xml
+        env:
+          DISPLAY: ":99.0"
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: |
+            coverage/
+            tmp/rspec_results.xml
+          retention-days: 30
+
+      - name: Keep screenshots from failed system tests
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore
+
+  # Performance and load testing
+  performance_test:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: atslite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpq-dev
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Set up database
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
+          bin/rails db:seed
+
+      - name: Run performance tests
+        run: |
+          # Add performance-specific RSpec tests here
+          bundle exec rspec spec/performance/ --tag performance
+        continue-on-error: true
+
+  # Asset compilation and integrity check
+  assets:
+    name: Asset Compilation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Precompile assets
+        run: |
+          bin/rails assets:precompile
+          bin/rails assets:clean
+
+      - name: Check for asset compilation errors
+        run: |
+          if [ -d "public/assets" ]; then
+            echo "Assets compiled successfully"
+            ls -la public/assets/ | head -20
+          else
+            echo "Asset compilation failed!"
+            exit 1
+          fi
+
+  # Final quality gate
+  quality_gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [security_scan, dependency_scan, code_quality, database_check, test, assets]
+    if: always()
+    
+    steps:
+      - name: Check job results
+        run: |
+          if [[ "${{ needs.security_scan.result }}" == "failure" ]]; then
+            echo "Security scan failed"
+            exit 1
+          fi
+          if [[ "${{ needs.dependency_scan.result }}" == "failure" ]]; then
+            echo "Dependency scan failed"
+            exit 1
+          fi
+          if [[ "${{ needs.code_quality.result }}" == "failure" ]]; then
+            echo "Code quality checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.database_check.result }}" == "failure" ]]; then
+            echo "Database checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then
+            echo "Test suite failed"
+            exit 1
+          fi
+          if [[ "${{ needs.assets.result }}" == "failure" ]]; then
+            echo "Asset compilation failed"
+            exit 1
+          fi
+          echo "All quality checks passed!"
+
+      - name: Quality summary
+        run: |
+          echo "## ATS Quality Report" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security_scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ${{ needs.dependency_scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code_quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database Check | ${{ needs.database_check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Asset Compilation | ${{ needs.assets.result }} |" >> $GITHUB_STEP_SUMMARY

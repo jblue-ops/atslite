@@ -1,0 +1,199 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# ATS Quality Check Runner
+# This script runs all code quality tools for the ATS application
+# Usage: bin/quality [--fix] [--security-only] [--style-only]
+
+require "optparse"
+require "open3"
+
+class ATSQualityChecker
+  TOOLS = {
+    security: {
+      brakeman: "bundle exec brakeman --config-file .brakeman.yml --no-pager --quiet",
+      bundle_audit: "bundle exec bundler-audit check --update",
+      importmap_audit: "bin/importmap audit"
+    },
+    style: {
+      rubocop: "bundle exec rubocop --display-cop-names --extra-details",
+      rubocop_fix: "bundle exec rubocop --auto-correct-all --display-cop-names"
+    },
+    test: {
+      rspec: "COVERAGE=true bundle exec rspec --format progress",
+      rspec_fast: "bundle exec rspec --format progress --tag ~slow"
+    }
+  }.freeze
+
+  def initialize(options = {})
+    @options = options
+    @errors = []
+    @passed = []
+  end
+
+  def run
+    puts "🔍 Running ATS Quality Checks..."
+    puts "================================"
+    
+    run_security_checks if security_checks?
+    run_style_checks if style_checks?
+    run_test_suite if test_checks?
+    
+    print_summary
+    exit 1 if @errors.any?
+  end
+
+  private
+
+  def security_checks?
+    @options[:all] || @options[:security_only]
+  end
+
+  def style_checks?
+    @options[:all] || @options[:style_only]
+  end
+
+  def test_checks?
+    @options[:all] && !@options[:security_only] && !@options[:style_only]
+  end
+
+  def run_security_checks
+    puts "\n🛡️  Security Checks"
+    puts "===================="
+    
+    run_tool("Brakeman Security Scan", TOOLS[:security][:brakeman])
+    run_tool("Bundle Audit", TOOLS[:security][:bundle_audit])
+    run_tool("Importmap Audit", TOOLS[:security][:importmap_audit])
+  end
+
+  def run_style_checks
+    puts "\n✨ Style & Quality Checks"
+    puts "=========================="
+    
+    if @options[:fix]
+      run_tool("RuboCop (Auto-fix)", TOOLS[:style][:rubocop_fix])
+    else
+      run_tool("RuboCop", TOOLS[:style][:rubocop])
+    end
+  end
+
+  def run_test_suite
+    puts "\n🧪 Test Suite"
+    puts "=============="
+    
+    if @options[:fast]
+      run_tool("RSpec (Fast)", TOOLS[:test][:rspec_fast])
+    else
+      run_tool("RSpec with Coverage", TOOLS[:test][:rspec])
+    end
+  end
+
+  def run_tool(name, command)
+    print "Running #{name}... "
+    
+    stdout, stderr, status = Open3.capture3(command)
+    
+    if status.success?
+      puts "✅ PASSED"
+      @passed << name
+    else
+      puts "❌ FAILED"
+      @errors << { name: name, command: command, stdout: stdout, stderr: stderr }
+      
+      unless @options[:quiet]
+        puts "\n" + "=" * 50
+        puts "FAILURE: #{name}"
+        puts "Command: #{command}"
+        puts "\nSTDOUT:" unless stdout.empty?
+        puts stdout unless stdout.empty?
+        puts "\nSTDERR:" unless stderr.empty?
+        puts stderr unless stderr.empty?
+        puts "=" * 50 + "\n"
+      end
+    end
+  rescue StandardError => e
+    puts "❌ ERROR"
+    @errors << { name: name, command: command, error: e.message }
+    
+    unless @options[:quiet]
+      puts "\nERROR running #{name}: #{e.message}\n"
+    end
+  end
+
+  def print_summary
+    puts "\n" + "=" * 50
+    puts "ATS QUALITY CHECK SUMMARY"
+    puts "=" * 50
+    
+    if @passed.any?
+      puts "\n✅ PASSED (#{@passed.length}):"
+      @passed.each { |name| puts "  • #{name}" }
+    end
+    
+    if @errors.any?
+      puts "\n❌ FAILED (#{@errors.length}):"
+      @errors.each { |error| puts "  • #{error[:name]}" }
+      
+      puts "\n🔧 RECOMMENDATIONS:"
+      puts "  • Run with --fix to auto-correct style issues"
+      puts "  • Check security warnings and update dependencies"
+      puts "  • Review failed tests and add missing coverage"
+      puts "  • Run tools individually for detailed output"
+    else
+      puts "\n🎉 ALL CHECKS PASSED!"
+      puts "Your ATS application meets quality standards."
+    end
+    
+    puts "\n📊 COVERAGE REPORT:"
+    if File.exist?("coverage/index.html")
+      puts "  • HTML Report: coverage/index.html"
+    end
+    if File.exist?("coverage/.last_run.json")
+      puts "  • Summary available in coverage directory"
+    end
+  end
+end
+
+# Parse command line options
+options = { all: true }
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: bin/quality [options]"
+  
+  opts.on("--security-only", "Run only security checks") do
+    options[:security_only] = true
+    options[:all] = false
+  end
+  
+  opts.on("--style-only", "Run only style checks") do
+    options[:style_only] = true
+    options[:all] = false
+  end
+  
+  opts.on("--fix", "Auto-fix style issues where possible") do
+    options[:fix] = true
+  end
+  
+  opts.on("--fast", "Run fast test suite (skip slow tests)") do
+    options[:fast] = true
+  end
+  
+  opts.on("--quiet", "Minimize output") do
+    options[:quiet] = true
+  end
+  
+  opts.on("-h", "--help", "Show this help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+# Ensure we're in a Rails application
+unless File.exist?("Gemfile") && File.exist?("config/application.rb")
+  puts "❌ Error: This doesn't appear to be a Rails application directory"
+  puts "Please run this script from your Rails app root directory"
+  exit 1
+end
+
+# Run the quality checker
+ATSQualityChecker.new(options).run

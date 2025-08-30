@@ -1,0 +1,806 @@
+# Omakase Ruby styling for Rails
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+require:
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.3
+  TargetRailsVersion: 8.0
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - 'config/routes.rb'
+    - 'config/application.rb'
+    - 'config/boot.rb'
+    - 'config/environment.rb'
+    - 'config/environments/**/*'
+    - 'config/initializers/**/*'
+    - 'config/puma.rb'
+    - 'Rakefile'
+    - 'Gemfile'
+    - 'Gemfile.lock'
+    - 'spec/rails_helper.rb'
+    - 'spec/spec_helper.rb'
+
+# ATS-specific configurations for handling sensitive recruiting data
+Rails:
+  Enabled: true
+
+Rails/ActionControllerFlashBeforeRender:
+  Enabled: true
+
+Rails/ActionControllerTestCase:
+  Enabled: true
+
+Rails/ActionOrder:
+  Enabled: true
+  ExpectedOrder:
+    - index
+    - show
+    - new
+    - edit
+    - create
+    - update
+    - destroy
+
+Rails/ActiveRecordCallbacksOrder:
+  Enabled: true
+
+Rails/ActiveSupportAliases:
+  Enabled: true
+
+Rails/AddColumnIndex:
+  Enabled: true
+
+Rails/AfterCommitOverride:
+  Enabled: true
+
+Rails/AttributeDefaultBlockValue:
+  Enabled: true
+
+Rails/BelongsTo:
+  Enabled: true
+
+Rails/BulkChangeTable:
+  Enabled: true
+
+Rails/CompactBlank:
+  Enabled: true
+
+Rails/CreateTableWithTimestamps:
+  Enabled: true
+
+Rails/DangerousColumnNames:
+  Enabled: true
+
+Rails/DefaultScope:
+  Enabled: true
+
+Rails/DotSeparatedKeys:
+  Enabled: true
+
+Rails/DuplicateAssociation:
+  Enabled: true
+
+Rails/DuplicateScope:
+  Enabled: true
+
+Rails/DurationArithmetic:
+  Enabled: true
+
+Rails/EagerEvaluationLogMessage:
+  Enabled: true
+
+Rails/EnumHash:
+  Enabled: true
+
+Rails/ExpandedDateRange:
+  Enabled: true
+
+Rails/FilePath:
+  Enabled: true
+  EnforcedStyle: arguments
+
+Rails/FindBy:
+  Enabled: true
+
+Rails/FindById:
+  Enabled: true
+
+Rails/FindEach:
+  Enabled: true
+
+Rails/FreezeTime:
+  Enabled: true
+
+Rails/HasAndBelongsToMany:
+  Enabled: true
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: true
+
+Rails/HelperInstanceVariable:
+  Enabled: true
+
+Rails/HttpStatus:
+  Enabled: true
+  EnforcedStyle: symbolic
+
+Rails/I18nLocaleAssignment:
+  Enabled: true
+
+Rails/I18nLocaleTexts:
+  Enabled: true
+
+Rails/IgnoredColumnsAssignment:
+  Enabled: true
+
+Rails/IndexBy:
+  Enabled: true
+
+Rails/IndexWith:
+  Enabled: true
+
+Rails/InverseOf:
+  Enabled: true
+
+Rails/LexicallyScopedActionFilter:
+  Enabled: true
+
+Rails/LinkToBlank:
+  Enabled: true
+
+Rails/MailerName:
+  Enabled: true
+
+Rails/MatchRoute:
+  Enabled: true
+
+Rails/MigrationClassName:
+  Enabled: true
+
+Rails/NegateInclude:
+  Enabled: true
+
+Rails/NotNullColumn:
+  Enabled: true
+
+Rails/OrderById:
+  Enabled: true
+
+Rails/Output:
+  Enabled: true
+
+Rails/OutputSafety:
+  Enabled: true
+
+Rails/Pick:
+  Enabled: true
+
+Rails/PluralizationGrammar:
+  Enabled: true
+
+Rails/Presence:
+  Enabled: true
+
+Rails/Present:
+  Enabled: true
+
+Rails/RakeEnvironment:
+  Enabled: true
+
+Rails/RedundantActiveRecordAllMethod:
+  Enabled: true
+
+Rails/RedundantAllowNil:
+  Enabled: true
+
+Rails/RedundantForeignKey:
+  Enabled: true
+
+Rails/RedundantPresenceValidationOnBelongsTo:
+  Enabled: true
+
+Rails/RedundantReceiverInWithOptions:
+  Enabled: true
+
+Rails/RedundantTravelBack:
+  Enabled: true
+
+Rails/ReflectionClassName:
+  Enabled: true
+
+Rails/RelativeDateConstant:
+  Enabled: true
+
+Rails/RenderInline:
+  Enabled: true
+
+Rails/RenderPlainText:
+  Enabled: true
+
+Rails/RequestReferer:
+  Enabled: true
+
+Rails/RequireDependency:
+  Enabled: true
+
+Rails/ReversibleMigration:
+  Enabled: true
+
+Rails/ReversibleMigrationMethodDefinition:
+  Enabled: true
+
+Rails/RootJoinChain:
+  Enabled: true
+
+Rails/RootPathnameMethods:
+  Enabled: true
+
+Rails/RootPublicPath:
+  Enabled: true
+
+Rails/SafeNavigation:
+  Enabled: true
+
+Rails/SafeNavigationWithBlank:
+  Enabled: true
+
+Rails/ScopeArgs:
+  Enabled: true
+
+Rails/ShortI18n:
+  Enabled: true
+
+Rails/SkipsModelValidations:
+  Enabled: true
+
+Rails/SquishedSQLHeredocs:
+  Enabled: true
+
+Rails/StripHeredoc:
+  Enabled: true
+
+Rails/ThreeStateBooleanColumn:
+  Enabled: true
+
+Rails/TimeZone:
+  Enabled: true
+
+Rails/ToFormattedS:
+  Enabled: true
+
+Rails/ToSWithArgument:
+  Enabled: true
+
+Rails/TopLevelHashWithIndifferentAccess:
+  Enabled: true
+
+Rails/TransactionExitStatement:
+  Enabled: true
+
+Rails/UnusedIgnoredColumns:
+  Enabled: true
+
+Rails/UnusedRenderContent:
+  Enabled: true
+
+Rails/Validation:
+  Enabled: true
+
+Rails/WhereEquals:
+  Enabled: true
+
+Rails/WhereExists:
+  Enabled: true
+
+Rails/WhereNot:
+  Enabled: true
+
+Rails/WhereMissing:
+  Enabled: true
+
+Rails/WhereRange:
+  Enabled: true
+
+# Performance optimizations critical for ATS systems handling large datasets
+Performance/AncestorsInclude:
+  Enabled: true
+
+Performance/ArraySemiInfiniteRangeSlice:
+  Enabled: true
+
+Performance/BigDecimalWithNumericArgument:
+  Enabled: true
+
+Performance/BlockGivenWithExplicitBlock:
+  Enabled: true
+
+Performance/CaseWhenSplat:
+  Enabled: true
+
+Performance/Casecmp:
+  Enabled: true
+
+Performance/ChainArrayAllocation:
+  Enabled: true
+
+Performance/CollectionLiteralInLoop:
+  Enabled: true
+
+Performance/CompareWithBlock:
+  Enabled: true
+
+Performance/ConcurrentMonotonicTime:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/Count:
+  Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
+  Enabled: true
+
+Performance/Detect:
+  Enabled: true
+
+Performance/DoubleStartEndWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/FixedSize:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/InefficientHashSearch:
+  Enabled: true
+
+Performance/IoReadlines:
+  Enabled: true
+
+Performance/MapCompact:
+  Enabled: true
+
+Performance/MethodObjectAsBlock:
+  Enabled: true
+
+Performance/OpenStruct:
+  Enabled: true
+
+Performance/RangeInclude:
+  Enabled: true
+
+Performance/RedundantBlockCall:
+  Enabled: true
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: true
+
+Performance/RedundantMatch:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/RedundantSortBlock:
+  Enabled: true
+
+Performance/RedundantSplitRegexpArgument:
+  Enabled: true
+
+Performance/RedundantStringChars:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/ReverseEach:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: true
+
+Performance/SelectMap:
+  Enabled: true
+
+Performance/Size:
+  Enabled: true
+
+Performance/SortReverse:
+  Enabled: true
+
+Performance/Squeeze:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/StringIdentifierArgument:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Performance/StringReplacement:
+  Enabled: true
+
+Performance/Sum:
+  Enabled: true
+
+Performance/TimesMap:
+  Enabled: true
+
+Performance/UnfreezeString:
+  Enabled: true
+
+Performance/UriDefaultParser:
+  Enabled: true
+
+# RSpec configurations for comprehensive test quality
+RSpec:
+  Enabled: true
+
+RSpec/AlignLeftLetBrace:
+  Enabled: true
+
+RSpec/AlignRightLetBrace:
+  Enabled: true
+
+RSpec/AnyInstance:
+  Enabled: true
+
+RSpec/AroundBlock:
+  Enabled: true
+
+RSpec/Be:
+  Enabled: true
+
+RSpec/BeEmpty:
+  Enabled: true
+
+RSpec/BeEq:
+  Enabled: true
+
+RSpec/BeEql:
+  Enabled: true
+
+RSpec/BeNil:
+  Enabled: true
+
+RSpec/BeforeAfterAll:
+  Enabled: true
+
+RSpec/ChangeByZero:
+  Enabled: true
+
+RSpec/ClassCheck:
+  Enabled: true
+
+RSpec/ContextMethod:
+  Enabled: true
+
+RSpec/ContextWording:
+  Enabled: true
+
+RSpec/DescribeClass:
+  Enabled: true
+
+RSpec/DescribeMethod:
+  Enabled: true
+
+RSpec/DescribeSymbol:
+  Enabled: true
+
+RSpec/DescribedClass:
+  Enabled: true
+
+RSpec/DescribedClassModuleWrapping:
+  Enabled: true
+
+RSpec/Dialect:
+  Enabled: true
+
+RSpec/DuplicatedMetadata:
+  Enabled: true
+
+RSpec/EmptyExampleGroup:
+  Enabled: true
+
+RSpec/EmptyHook:
+  Enabled: true
+
+RSpec/EmptyLineAfterExample:
+  Enabled: true
+
+RSpec/EmptyLineAfterExampleGroup:
+  Enabled: true
+
+RSpec/EmptyLineAfterFinalLet:
+  Enabled: true
+
+RSpec/EmptyLineAfterHook:
+  Enabled: true
+
+RSpec/EmptyLineAfterSubject:
+  Enabled: true
+
+RSpec/ExampleLength:
+  Enabled: true
+  Max: 20
+
+RSpec/ExampleWithoutDescription:
+  Enabled: true
+
+RSpec/ExampleWording:
+  Enabled: true
+
+RSpec/ExcessiveDocstringSpacing:
+  Enabled: true
+
+RSpec/ExpectActual:
+  Enabled: true
+
+RSpec/ExpectChange:
+  Enabled: true
+
+RSpec/ExpectInHook:
+  Enabled: true
+
+RSpec/ExpectOutput:
+  Enabled: true
+
+RSpec/FilePath:
+  Enabled: true
+
+RSpec/Focus:
+  Enabled: true
+
+RSpec/HookArgument:
+  Enabled: true
+
+RSpec/HooksBeforeExamples:
+  Enabled: true
+
+RSpec/ImplicitBlockExpectation:
+  Enabled: true
+
+RSpec/ImplicitExpect:
+  Enabled: true
+
+RSpec/ImplicitSubject:
+  Enabled: true
+
+RSpec/IndexedLet:
+  Enabled: true
+
+RSpec/InstanceVariable:
+  Enabled: true
+
+RSpec/ItBehavesLike:
+  Enabled: true
+
+RSpec/IteratedExpectation:
+  Enabled: true
+
+RSpec/LeadingSubject:
+  Enabled: true
+
+RSpec/LeakyConstantDeclaration:
+  Enabled: true
+
+RSpec/LetBeforeExamples:
+  Enabled: true
+
+RSpec/LetSetup:
+  Enabled: true
+
+RSpec/MessageExpectation:
+  Enabled: true
+
+RSpec/MessageSpies:
+  Enabled: true
+
+RSpec/MissingExampleGroupArgument:
+  Enabled: true
+
+RSpec/MultipleDescribes:
+  Enabled: true
+
+RSpec/MultipleExpectations:
+  Enabled: true
+  Max: 5
+
+RSpec/MultipleSubjects:
+  Enabled: true
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: true
+  Max: 10
+
+RSpec/NamedSubject:
+  Enabled: true
+
+RSpec/NestedGroups:
+  Enabled: true
+  Max: 5
+
+RSpec/NoExpectationExample:
+  Enabled: true
+
+RSpec/NotToNot:
+  Enabled: true
+
+RSpec/OverwritingSetup:
+  Enabled: true
+
+RSpec/Pending:
+  Enabled: true
+
+RSpec/PredicateMatcher:
+  Enabled: true
+
+RSpec/ReceiveCounts:
+  Enabled: true
+
+RSpec/ReceiveNever:
+  Enabled: true
+
+RSpec/RepeatedDescription:
+  Enabled: true
+
+RSpec/RepeatedExample:
+  Enabled: true
+
+RSpec/RepeatedExampleGroupBody:
+  Enabled: true
+
+RSpec/RepeatedExampleGroupDescription:
+  Enabled: true
+
+RSpec/RepeatedIncludeExample:
+  Enabled: true
+
+RSpec/ReturnFromStub:
+  Enabled: true
+
+RSpec/ScatteredLet:
+  Enabled: true
+
+RSpec/ScatteredSetup:
+  Enabled: true
+
+RSpec/SharedContext:
+  Enabled: true
+
+RSpec/SharedExamples:
+  Enabled: true
+
+RSpec/SingleArgumentMessageChain:
+  Enabled: true
+
+RSpec/SkipBlockInsideExample:
+  Enabled: true
+
+RSpec/SortMetadata:
+  Enabled: true
+
+RSpec/SpecFilePathFormat:
+  Enabled: true
+
+RSpec/SpecFilePathSuffix:
+  Enabled: true
+
+RSpec/StubbedMock:
+  Enabled: true
+
+RSpec/SubjectDeclaration:
+  Enabled: true
+
+RSpec/SubjectStub:
+  Enabled: true
+
+RSpec/UnspecifiedException:
+  Enabled: true
+
+RSpec/VariableDefinition:
+  Enabled: true
+
+RSpec/VariableName:
+  Enabled: true
+
+RSpec/VerifiedDoubleReference:
+  Enabled: true
+
+RSpec/VerifiedDoubles:
+  Enabled: true
+
+RSpec/VoidExpect:
+  Enabled: true
+
+RSpec/Yield:
+  Enabled: true
+
+# ATS-specific style customizations
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+# Security-focused rules for ATS handling sensitive data
+Security/Eval:
+  Enabled: true
+
+Security/JSONLoad:
+  Enabled: true
+
+Security/MarshalLoad:
+  Enabled: true
+
+Security/Open:
+  Enabled: true
+
+Security/YAMLLoad:
+  Enabled: true
+
+# Metrics for maintainability in large ATS codebase
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+    - 'db/migrate/*.rb'
+    - 'lib/tasks/*.rake'
+
+Metrics/ClassLength:
+  Max: 150
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/MethodLength:
+  Max: 25
+  Exclude:
+    - 'spec/**/*'
+    - 'db/migrate/*.rb'
+
+Metrics/ModuleLength:
+  Max: 150
+  Exclude:
+    - 'spec/**/*'
+
+# Layout preferences for ATS team
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  EnforcedStyle: with_fixed_indentation

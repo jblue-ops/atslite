@@ -1,0 +1,99 @@
+# Bundler Audit Configuration for ATS Application
+# https://github.com/rubysec/bundler-audit
+
+# Database update behavior
+database:
+  # Auto-update vulnerability database
+  update: true
+  
+  # Database update timeout (seconds)
+  timeout: 30
+  
+  # Quiet database updates
+  quiet_database_update: false
+
+# Vulnerability reporting
+vulnerabilities:
+  # Report all vulnerability levels
+  # Levels: low, medium, high, critical
+  min_severity: low
+  
+  # Include patched vulnerabilities in report
+  include_patched: true
+  
+  # Include withdrawn advisories
+  include_withdrawn: false
+
+# Advisory ignores for ATS application
+# Use these sparingly and document why each is acceptable
+ignore:
+  # Example: Ignore specific CVE if not applicable to ATS usage
+  # - "CVE-2021-12345"  # Not exploitable in our use case because...
+  
+  # Example: Ignore advisory if upgrade not possible immediately
+  # - "GHSA-abcd-1234-efgh"  # Scheduled for upgrade in sprint X
+
+# Output configuration
+output:
+  # Format: text, json, yaml, xml
+  format: text
+  
+  # Show advisory details
+  verbose: true
+  
+  # Include gem dependency paths
+  show_paths: true
+
+# Performance settings
+performance:
+  # Check for insecure gem sources
+  check_sources: true
+  
+  # Validate Gemfile.lock integrity
+  check_lock: true
+  
+  # Maximum time for advisory checks (seconds)
+  timeout: 300
+
+# Custom configuration for ATS security requirements
+ats_security:
+  # Critical gems that must be monitored closely
+  critical_gems:
+    - devise          # Authentication
+    - pundit          # Authorization  
+    - pg              # Database driver
+    - rails           # Framework
+    - actionmailer    # Email handling
+    - actionpack      # Web framework
+    - activerecord    # ORM
+    - activestorage   # File uploads
+    - bcrypt          # Password hashing
+  
+  # Gems handling sensitive data
+  sensitive_data_gems:
+    - pg_search       # Search with PII
+    - acts-as-taggable-on  # Candidate tags
+    - public_activity # Activity logging
+    - acts_as_tenant  # Multi-tenancy
+  
+  # Development/test only gems (lower priority)
+  dev_gems:
+    - rspec-rails
+    - factory_bot_rails
+    - faker
+    - capybara
+    - selenium-webdriver
+
+# Integration settings
+integration:
+  # Exit with error code on vulnerabilities
+  exit_on_vulnerability: true
+  
+  # Exit code for vulnerabilities found
+  vulnerability_exit_code: 1
+  
+  # Exit code for other errors
+  error_exit_code: 2
+  
+  # Continue on network errors
+  continue_on_error: false

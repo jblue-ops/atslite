@@ -1,0 +1,22 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "# Add specific fingerprints here for intentional XSS exceptions",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "# Specify file path",
+      "line": null,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "note": "Example entry - remove and add actual warnings to ignore"
+    }
+  ],
+  "updated": "2025-08-30 00:00:00 +0000",
+  "brakeman_version": "6.0.0"
+}
