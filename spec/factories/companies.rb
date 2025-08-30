@@ -99,17 +99,18 @@ FactoryBot.define do
   end
 
   factory :department do
-    company
-    name { %w[Engineering Product Marketing Sales HR Finance].sample }
+    organization
+    sequence(:name) { |n| "#{%w[Engineering Product Marketing Sales HR Finance].sample} #{n}" }
     description { Faker::Lorem.sentence }
+    active { true }
 
     trait :engineering do
-      name { "Engineering" }
+      sequence(:name) { |n| "Engineering #{n}" }
       description { "Responsible for building and maintaining our technology platform" }
     end
 
-    trait :with_head do
-      head { association :user, :hiring_manager, department: name }
+    trait :with_parent do
+      parent_department { association :department, organization: organization }
     end
   end
 end

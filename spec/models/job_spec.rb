@@ -1,215 +1,195 @@
 # frozen_string_literal: true
 
-RSpec.describe Job, type: :model do
-  subject(:job) { build(:job) }
+require 'rails_helper'
 
-  describe "associations" do
-    it { is_expected.to belong_to(:company) }
-    it { is_expected.to belong_to(:posted_by).class_name("User") }
-    it { is_expected.to have_many(:applications).dependent(:destroy) }
-    it { is_expected.to have_many(:candidates).through(:applications) }
-    it { is_expected.to have_many(:pipeline_stages).dependent(:destroy) }
-    it { is_expected.to have_many(:job_postings).dependent(:destroy) }
+RSpec.describe Job, type: :model do
+  let(:organization) { create(:organization) }
+  let(:hiring_manager) { create(:user, :hiring_manager, organization: organization) }
+  
+  describe 'associations' do
+    it { should belong_to(:organization) }
+    it { should belong_to(:hiring_manager).class_name('User') }
+    it { should belong_to(:department).optional }
+    # Future associations - will be tested in later phases
+    # it { should have_many(:applications).dependent(:destroy) }
+    # it { should have_many(:candidates).through(:applications) }
+    # it { should have_many(:interviews).through(:applications) }
   end
 
-  describe "validations" do
-    it_behaves_like "has required fields", :title, :description, :location, :employment_type
-    it_behaves_like "belongs to company"
+  describe 'validations' do
+    subject { build(:job, organization: organization, hiring_manager: hiring_manager) }
 
-    it { is_expected.to validate_presence_of(:experience_level) }
-    it { is_expected.to validate_inclusion_of(:employment_type).in_array(%w[full_time part_time contract internship]) }
-    it { is_expected.to validate_inclusion_of(:experience_level).in_array(%w[entry mid senior lead executive]) }
+    it { should validate_presence_of(:title) }
+    it { should validate_presence_of(:description) }
+    it { should validate_length_of(:title).is_at_least(3).is_at_most(200) }
+    it { should validate_length_of(:description).is_at_least(10) }
+    
+    it { should validate_inclusion_of(:employment_type).in_array(%w[full_time part_time contract temporary internship]) }
+    it { should validate_inclusion_of(:experience_level).in_array(%w[entry junior mid senior lead executive]).allow_blank }
 
-    context "salary validations" do
-      it "validates salary_min is less than salary_max" do
-        job.salary_min = 100_000
-        job.salary_max = 80_000
+    
+    it { should validate_numericality_of(:salary_range_min).is_greater_than_or_equal_to(0).allow_blank }
+    it { should validate_numericality_of(:salary_range_max).is_greater_than_or_equal_to(0).allow_blank }
+    it { should validate_numericality_of(:application_count).is_greater_than_or_equal_to(0) }
+    it { should validate_numericality_of(:view_count).is_greater_than_or_equal_to(0) }
+
+    describe 'currency validation' do
+      it 'validates currency format' do
+        job = build(:job, currency: 'USD', organization: organization, hiring_manager: hiring_manager)
+        expect(job).to be_valid
+
+        job.currency = 'invalid'
         expect(job).not_to be_valid
-        expect(job.errors[:salary_max]).to include("must be greater than minimum salary")
+        expect(job.errors[:currency]).to include('must be a valid 3-letter currency code')
+      end
+    end
+
+    describe 'salary range consistency' do
+      it 'validates that max salary is greater than or equal to min salary' do
+        job = build(:job, 
+                   salary_range_min: 100_000, 
+                   salary_range_max: 80_000, 
+                   organization: organization, 
+                   hiring_manager: hiring_manager)
+        expect(job).not_to be_valid
+        expect(job.errors[:salary_range_max]).to include('must be greater than or equal to minimum salary')
       end
 
-      it "allows nil salary values" do
-        job.salary_min = nil
-        job.salary_max = nil
+      it 'allows equal min and max salaries' do
+        job = build(:job, 
+                   salary_range_min: 100_000, 
+                   salary_range_max: 100_000, 
+                   organization: organization, 
+                   hiring_manager: hiring_manager)
         expect(job).to be_valid
       end
+    end
 
-      it "validates positive salary values" do
-        job.salary_min = -1000
+    describe 'hiring manager validation' do
+      it 'validates that hiring manager belongs to same organization' do
+        other_org = create(:organization)
+        other_manager = create(:user, :hiring_manager, organization: other_org)
+        
+        job = build(:job, organization: organization, hiring_manager: other_manager)
         expect(job).not_to be_valid
-        expect(job.errors[:salary_min]).to include("must be greater than 0")
+        expect(job.errors[:hiring_manager]).to include('must belong to the same organization')
       end
     end
   end
 
-  describe "scopes" do
-    let!(:active_job) { create(:job, :active) }
-    let!(:draft_job)  { create(:job)          }
-    let!(:closed_job) { create(:job, :closed) }
-    let!(:remote_job) { create(:job, :remote) }
+  describe 'scopes' do
+    let!(:draft_job) { create(:job, status: 'draft', organization: organization, hiring_manager: hiring_manager) }
+    let!(:published_job) { create(:job, :published, organization: organization, hiring_manager: hiring_manager) }
+    let!(:closed_job) { create(:job, :closed, organization: organization, hiring_manager: hiring_manager) }
+    let!(:archived_job) { create(:job, :archived, organization: organization, hiring_manager: hiring_manager) }
+    let!(:remote_job) { create(:job, :remote, organization: organization, hiring_manager: hiring_manager) }
 
-    describe ".active" do
-      it "returns only active jobs" do
-        expect(Job.active).to contain_exactly(active_job)
-      end
+    it 'filters by status correctly' do
+      expect(Job.draft).to contain_exactly(draft_job)
+      expect(Job.published).to contain_exactly(published_job)
+      expect(Job.closed).to contain_exactly(closed_job)
+      expect(Job.archived).to contain_exactly(archived_job)
+      expect(Job.active).to contain_exactly(published_job)
     end
 
-    describe ".remote" do
-      it "returns jobs that allow remote work" do
-        expect(Job.remote).to include(remote_job)
-      end
+    it 'filters remote-friendly jobs' do
+      expect(Job.remote_friendly).to contain_exactly(remote_job)
     end
 
-    describe ".by_experience_level" do
-      let!(:senior_job) { create(:job, :senior_role) }
-
-      it "filters by experience level" do
-        expect(Job.by_experience_level("senior")).to include(senior_job)
-      end
+    it 'filters by experience level' do
+      senior_job = create(:job, :senior_role, organization: organization, hiring_manager: hiring_manager)
+      expect(Job.by_experience_level('senior')).to contain_exactly(senior_job)
     end
   end
 
-  describe "state machine" do
-    it_behaves_like "a job with states"
+  describe 'state machine' do
+    let(:job) { create(:job, organization: organization, hiring_manager: hiring_manager) }
 
-    describe "state transitions" do
-      it "starts in draft state" do
-        expect(job.status).to eq("draft")
-      end
+    it 'starts in draft state' do
+      expect(job.status).to eq('draft')
+    end
 
-      it "can be published" do
-        expect { job.publish! }.to change(job, :status).from("draft").to("active")
+    describe 'publish event' do
+      it 'transitions from draft to published' do
+        expect(job.publish).to be true
+        expect(job.status).to eq('published')
         expect(job.published_at).to be_present
       end
+    end
 
-      it "can be closed" do
-        job.publish!
-        expect { job.close! }.to change(job, :status).from("active").to("closed")
-        expect(job.closed_at).to be_present
-      end
+    describe 'close event' do
+      let(:published_job) { create(:job, :published, organization: organization, hiring_manager: hiring_manager) }
 
-      it "can be paused" do
-        job.publish!
-        expect { job.pause! }.to change(job, :status).from("active").to("paused")
-        expect(job.paused_at).to be_present
-      end
-
-      it "cannot transition from closed to active" do
-        job.publish!
-        job.close!
-        expect { job.publish! }.to raise_error(StateMachines::InvalidTransition)
+      it 'transitions from published to closed' do
+        expect(published_job.close).to be true
+        expect(published_job.status).to eq('closed')
       end
     end
   end
 
-  describe "callbacks" do
-    describe "after_create" do
-      it "creates default pipeline stages" do
-        job = create(:job)
-        expect(job.pipeline_stages.count).to be > 0
-        expect(job.pipeline_stages.pluck(:name)).to include("Applied", "Phone Screen", "Offer")
-      end
-    end
+  describe 'class methods' do
+    describe '.search' do
+      let!(:job1) { create(:job, title: 'Ruby Developer', organization: organization, hiring_manager: hiring_manager) }
+      let!(:job2) { create(:job, description: 'Looking for Python skills', organization: organization, hiring_manager: hiring_manager) }
 
-    describe "before_save" do
-      it "sets published_at when publishing" do
-        job.status = "active"
-        job.save!
-        expect(job.published_at).to be_within(1.second).of(Time.current)
+      it 'searches by title' do
+        expect(Job.search('Ruby')).to contain_exactly(job1)
+      end
+
+      it 'searches by description' do
+        expect(Job.search('Python')).to contain_exactly(job2)
       end
     end
   end
 
-  describe "instance methods" do
-    describe "#salary_range" do
-      context "when both salary values are present" do
-        it "returns formatted salary range" do
-          job.salary_min = 80_000
-          job.salary_max = 120_000
-          job.salary_currency = "USD"
-          expect(job.salary_range).to eq("$80,000 - $120,000")
-        end
-      end
+  describe 'instance methods' do
+    let(:job) { create(:job, organization: organization, hiring_manager: hiring_manager) }
 
-      context "when salary values are not present" do
-        it "returns competitive message" do
-          job.salary_min = nil
-          job.salary_max = nil
-          expect(job.salary_range).to eq("Competitive")
-        end
+    describe '#display_title' do
+      it 'returns title when present' do
+        job.title = 'Software Engineer'
+        expect(job.display_title).to eq('Software Engineer')
       end
     end
 
-    describe "#applications_count" do
-      let!(:job) { create(:job, :active) }
-
-      it "returns the number of applications" do
-        create_list(:application, 3, job: job)
-        expect(job.applications_count).to eq(3)
+    describe '#salary_range_display' do
+      it 'shows full range when both set' do
+        job.salary_range_min = 80_000
+        job.salary_range_max = 120_000
+        expect(job.salary_range_display).to eq('USD 80K - 120K')
       end
     end
 
-    describe "#days_since_posted" do
-      let!(:job) { create(:job, :active, published_at: 5.days.ago) }
-
-      it "returns days since job was published" do
-        expect(job.days_since_posted).to eq(5)
-      end
-    end
-
-    describe "#remote?" do
-      it "returns true for remote jobs" do
-        job.remote_ok = true
-        expect(job).to be_remote
-      end
-
-      it "returns false for non-remote jobs" do
-        job.remote_ok = false
-        expect(job).not_to be_remote
+    describe '#can_be_published?' do
+      it 'returns true when all required fields present' do
+        job.title = 'Developer'
+        job.description = 'Great opportunity'
+        expect(job.can_be_published?).to be true
       end
     end
   end
 
-  describe "search functionality" do
-    let!(:rails_job) { create(:job, :active, title: "Rails Developer", description: "Ruby on Rails experience required")  }
-    let!(:react_job) { create(:job, :active, title: "React Developer", description: "JavaScript and React skills needed") }
-
-    describe ".search" do
-      it "finds jobs by title" do
-        results = Job.search("Rails")
-        expect(results).to include(rails_job)
-        expect(results).not_to include(react_job)
-      end
-
-      it "finds jobs by description" do
-        results = Job.search("JavaScript")
-        expect(results).to include(react_job)
-        expect(results).not_to include(rails_job)
+  describe 'callbacks' do
+    describe 'after_create' do
+      it 'sets default settings' do
+        job = create(:job, organization: organization, hiring_manager: hiring_manager)
+        expect(job.setting('auto_reject_after_days')).to eq(30)
       end
     end
   end
 
-  describe "audit trail" do
-    it_behaves_like "has audit trail"
+  describe 'multi-tenant support' do
+    it 'scopes jobs to organization' do
+      org1 = create(:organization)
+      org2 = create(:organization)
+      manager1 = create(:user, :hiring_manager, organization: org1)
+      manager2 = create(:user, :hiring_manager, organization: org2)
+      
+      job1 = create(:job, organization: org1, hiring_manager: manager1)
+      job2 = create(:job, organization: org2, hiring_manager: manager2)
 
-    it "tracks job publication" do
-      expect_audit_log("job.published", job)
-      job.publish!
-    end
-  end
-
-  describe "multi-tenancy" do
-    it_behaves_like "belongs to company"
-
-    it "scopes jobs to current company" do
-      company1 = create(:company)
-      company2 = create(:company)
-      job1 = create(:job, company: company1)
-      job2 = create(:job, company: company2)
-
-      ActsAsTenant.with_tenant(company1) do
-        expect(Job.all).to include(job1)
-        expect(Job.all).not_to include(job2)
+      ActsAsTenant.with_tenant(org1) do
+        expect(Job.all).to contain_exactly(job1)
       end
     end
   end

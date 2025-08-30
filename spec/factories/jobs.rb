@@ -1,114 +1,85 @@
 FactoryBot.define do
   factory :job do
-    company
+    organization
+    hiring_manager { association :user, :hiring_manager, organization: organization }
     title { Faker::Job.title }
     description { Faker::Lorem.paragraphs(number: 3).join("\n\n") }
     requirements { Faker::Lorem.paragraphs(number: 2).join("\n\n") }
+    qualifications { Faker::Lorem.paragraph }
     location { "#{Faker::Address.city}, #{Faker::Address.state}" }
-    employment_type { %w[full_time part_time contract internship].sample }
-    experience_level { %w[entry mid senior lead executive].sample }
-    salary_min { rand(50_000..120_000) }
-    salary_max { salary_min + rand(20_000..80_000) }
-    salary_currency { "USD" }
-    remote_ok { [true, false].sample }
+    employment_type { %w[full_time part_time contract temporary internship].sample }
+    experience_level { %w[entry junior mid senior lead executive].sample }
+    salary_range_min { rand(50_000..120_000) }
+    salary_range_max { salary_range_min + rand(20_000..80_000) }
+    currency { "USD" }
+    remote_work_allowed { [true, false].sample }
     status { "draft" }
-    posted_by { association :user, :recruiter, company: company }
-    department { "Engineering" }
+    department { association :department, organization: organization }
+    application_count { 0 }
+    view_count { 0 }
 
-    # Default pipeline stages
-    after(:create) do |job|
-      ["Applied", "Phone Screen", "Technical Interview", "Final Interview", "Offer", "Hired", "Rejected"].each_with_index do |stage, index|
-        create(:pipeline_stage, job: job, name: stage, position: index + 1)
-      end
-    end
-
-    trait :active do
-      status { "active" }
+    trait :published do
+      status { "published" }
       published_at { 1.day.ago }
     end
 
     trait :closed do
       status { "closed" }
-      closed_at { 1.day.ago }
+      published_at { 2.days.ago }
     end
 
-    trait :paused do
-      status { "paused" }
-      paused_at { 1.day.ago }
+    trait :archived do
+      status { "archived" }
     end
 
     trait :remote do
       location { "Remote" }
-      remote_ok { true }
+      remote_work_allowed { true }
     end
 
     trait :senior_role do
       experience_level { "senior" }
-      salary_min { 120_000 }
-      salary_max { 180_000 }
+      salary_range_min { 120_000 }
+      salary_range_max { 180_000 }
       title { "Senior #{Faker::Job.title}" }
     end
 
     trait :entry_level do
       experience_level { "entry" }
-      salary_min { 50_000 }
-      salary_max { 70_000 }
+      salary_range_min { 50_000 }
+      salary_range_max { 70_000 }
       title { "Junior #{Faker::Job.title}" }
     end
 
     trait :contract do
       employment_type { "contract" }
-      contract_duration { "6 months" }
     end
 
-    trait :with_skills do
-      after(:create) do |job|
-        skills = %w[Ruby Rails JavaScript React PostgreSQL AWS]
-        job.skill_list.add(*skills.sample(3))
-        job.save
-      end
+    trait :with_expiration do
+      expires_at { 30.days.from_now }
     end
 
-    trait :with_applications do
-      transient do
-        applications_count { 5 }
-      end
-
-      after(:create) do |job, evaluator|
-        create_list(:application, evaluator.applications_count, job: job)
-      end
+    trait :expired do
+      expires_at { 1.day.ago }
+      status { "published" }
+      published_at { 31.days.ago }
     end
 
-    trait :urgent do
-      priority { "high" }
-      filled_by_date { 2.weeks.from_now }
+    trait :high_salary do
+      salary_range_min { 150_000 }
+      salary_range_max { 220_000 }
     end
 
-    trait :with_custom_pipeline do
-      after(:create) do |job|
-        job.pipeline_stages.destroy_all
-        ["Applied", "Coding Challenge", "Technical Screen", "System Design", "Culture Fit", "Offer"].each_with_index do |stage, index|
-          create(:pipeline_stage, job: job, name: stage, position: index + 1)
-        end
-      end
-    end
-
-    # Job board specific traits
-    trait :posted_to_job_boards do
-      job_board_postings { %w[indeed linkedin glassdoor] }
-      external_posting_urls do
-        {
-          "indeed" => "https://indeed.com/job/123",
-          "linkedin" => "https://linkedin.com/job/456"
-        }
-      end
+    trait :no_salary do
+      salary_range_min { nil }
+      salary_range_max { nil }
     end
 
     # Industry-specific job templates
     trait :software_engineer do
       title { "Software Engineer" }
       department { "Engineering" }
-      with_skills
+      experience_level { "mid" }
       requirements do
         "• 3+ years of experience with Ruby on Rails\n" +
           "• Strong understanding of web technologies\n" +
@@ -120,6 +91,7 @@ FactoryBot.define do
     trait :product_manager do
       title { "Product Manager" }
       department { "Product" }
+      experience_level { "senior" }
       requirements do
         "• 5+ years of product management experience\n" +
           "• Strong analytical and communication skills\n" +
@@ -131,52 +103,8 @@ FactoryBot.define do
     trait :sales_rep do
       title { "Sales Representative" }
       department { "Sales" }
-      salary_structure { "base_plus_commission" }
-      commission_rate { 0.05 }
-    end
-  end
-
-  factory :pipeline_stage do
-    job
-    name { "Applied" }
-    position { 1 }
-    description { "Initial application stage" }
-
-    trait :screening do
-      name { "Phone Screen" }
-      position { 2 }
-      description { "Initial phone screening with recruiter" }
-    end
-
-    trait :interview do
-      name { "Technical Interview" }
-      position { 3 }
-      description { "Technical interview with team members" }
-    end
-
-    trait :final_stage do
-      name { "Offer" }
-      position { 5 }
-      description { "Offer extended to candidate" }
-    end
-  end
-
-  factory :job_posting do
-    job
-    platform { "indeed" }
-    external_id { Faker::Alphanumeric.alphanumeric(number: 10) }
-    posted_at { 1.day.ago }
-    status { "active" }
-    url { "https://indeed.com/job/#{external_id}" }
-
-    trait :linkedin do
-      platform { "linkedin" }
-      url { "https://linkedin.com/job/#{external_id}" }
-    end
-
-    trait :expired do
-      status { "expired" }
-      expires_at { 1.day.ago }
+      experience_level { "mid" }
+      employment_type { "full_time" }
     end
   end
 end

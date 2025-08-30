@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_30_020610) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -420,47 +420,45 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_020610) do
     t.string "title", null: false
     t.text "description", null: false
     t.text "requirements"
-    t.text "benefits"
     t.string "employment_type", null: false
-    t.string "work_location_type", null: false
     t.string "location"
     t.string "experience_level"
-    t.decimal "salary_min", precision: 12, scale: 2
-    t.decimal "salary_max", precision: 12, scale: 2
-    t.string "salary_currency", default: "USD"
-    t.string "salary_period"
+    t.integer "salary_range_min"
+    t.integer "salary_range_max"
+    t.string "currency", default: "USD"
     t.string "status", default: "draft", null: false
-    t.json "pipeline_stages", default: [{"name" => "Applied", "type" => "applied", "order" => 1}, {"name" => "Phone Screen", "type" => "phone_screen", "order" => 2}, {"name" => "Technical Interview", "type" => "technical", "order" => 3}, {"name" => "Final Interview", "type" => "final", "order" => 4}, {"name" => "Offer", "type" => "offer", "order" => 5}, {"name" => "Hired", "type" => "hired", "order" => 6}], null: false
-    t.datetime "posted_at"
-    t.datetime "application_deadline"
-    t.datetime "target_start_date"
-    t.string "urgency"
-    t.integer "openings_count", default: 1
-    t.json "required_skills", default: []
-    t.json "nice_to_have_skills", default: []
-    t.string "referral_bonus_amount"
-    t.boolean "confidential", default: false
-    t.boolean "remote_work_eligible", default: false
-    t.text "internal_notes"
-    t.boolean "active", default: true, null: false
-    t.datetime "deleted_at"
+    t.datetime "legacy_posted_at"
+    t.boolean "remote_work_allowed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_jobs_on_active"
-    t.index ["application_deadline"], name: "index_jobs_on_application_deadline"
-    t.index ["deleted_at"], name: "index_jobs_on_deleted_at"
+    t.text "qualifications"
+    t.datetime "expires_at"
+    t.datetime "published_at"
+    t.integer "application_count", default: 0
+    t.integer "view_count", default: 0
+    t.jsonb "settings", default: {}
     t.index ["department_id"], name: "index_jobs_on_department_id"
     t.index ["employment_type"], name: "index_jobs_on_employment_type"
     t.index ["experience_level"], name: "index_jobs_on_experience_level"
+    t.index ["expires_at"], name: "index_jobs_on_expires_at"
     t.index ["hiring_manager_id"], name: "index_jobs_on_hiring_manager_id"
+    t.index ["legacy_posted_at"], name: "index_jobs_on_legacy_posted_at"
     t.index ["organization_id", "department_id"], name: "index_jobs_on_organization_id_and_department_id"
     t.index ["organization_id", "status"], name: "index_jobs_on_organization_id_and_status"
     t.index ["organization_id"], name: "index_jobs_on_organization_id"
-    t.index ["posted_at"], name: "index_jobs_on_posted_at"
+    t.index ["published_at"], name: "index_jobs_on_published_at"
+    t.index ["remote_work_allowed"], name: "index_jobs_on_remote_work_allowed"
+    t.index ["settings"], name: "index_jobs_on_settings", using: :gin
+    t.index ["status", "published_at"], name: "index_jobs_on_status_and_published_at"
     t.index ["status"], name: "index_jobs_on_status"
     t.index ["title"], name: "index_jobs_on_title"
-    t.index ["urgency"], name: "index_jobs_on_urgency"
-    t.index ["work_location_type"], name: "index_jobs_on_work_location_type"
+    t.check_constraint "application_count >= 0", name: "application_count_positive"
+    t.check_constraint "employment_type::text = ANY (ARRAY['full_time'::character varying, 'part_time'::character varying, 'contract'::character varying, 'temporary'::character varying, 'internship'::character varying]::text[])", name: "employment_type_valid"
+    t.check_constraint "experience_level::text = ANY (ARRAY['entry'::character varying, 'junior'::character varying, 'mid'::character varying, 'senior'::character varying, 'lead'::character varying, 'executive'::character varying]::text[])", name: "experience_level_valid"
+    t.check_constraint "salary_range_max >= salary_range_min", name: "salary_range_max_gte_min"
+    t.check_constraint "salary_range_min >= 0", name: "salary_range_min_positive"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'published'::character varying, 'closed'::character varying, 'archived'::character varying]::text[])", name: "status_valid"
+    t.check_constraint "view_count >= 0", name: "view_count_positive"
   end
 
   create_table "notes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
