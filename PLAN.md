@@ -68,21 +68,67 @@ ATS Lite is a lightweight Applicant Tracking System built for small businesses u
 
 ## Current Development Phase 🚧
 
-### Phase 3: Job Management System
-**Status**: Next Up  
-**Branch**: `feature/pr-3-job-management`  
-**Description**: Core job posting and management functionality
+### Phase 3: Job Management System (Split into 4 PRs)
+
+#### Phase 3.1: Job Model & State Machine ✅
+**Status**: Ready to Implement  
+**Branch**: `feature/pr-3.1-job-model-state-machine`  
+**Description**: Core Job model with database foundation
 
 **Planned Work**:
-- [ ] Job model with status state machine (draft, published, closed, archived)
-- [ ] Job posting form with rich text editor
-- [ ] Job requirements and qualifications management
+- [ ] Create Job model with UUID primary key
+- [ ] Database migration with proper indexes and constraints
+- [ ] State machine for job status (draft, published, closed, archived)
+- [ ] Basic associations with Organization and User models
+- [ ] Job validations and business rules
+- [ ] Job factory for testing
+- [ ] Comprehensive Job model test suite
+- [ ] Model documentation and comments
+
+#### Phase 3.2: Job CRUD Operations & Policies ⏳
+**Status**: Follows 3.1  
+**Branch**: `feature/pr-3.2-job-crud-policies`  
+**Description**: Full job management interface with authorization
+
+**Planned Work**:
+- [ ] JobsController with full CRUD operations
+- [ ] Job authorization policies with Pundit
+- [ ] Job forms and view templates
+- [ ] Job listing and detail pages
+- [ ] Permission-based access control
+- [ ] Controller and policy test coverage
+- [ ] Form validation and error handling
+- [ ] Responsive job management UI
+
+#### Phase 3.3: Job Templates & Rich Content ⏳
+**Status**: Follows 3.2  
+**Branch**: `feature/pr-3.3-job-templates-content`  
+**Description**: Advanced job content management and templates
+
+**Planned Work**:
 - [ ] Job template system for common roles
-- [ ] Public job board views
-- [ ] Job analytics and metrics
-- [ ] Bulk job operations
-- [ ] Authorization policies for job management
-- [ ] Comprehensive test coverage for job features
+- [ ] Rich text editor integration (Action Text)
+- [ ] Job requirements and qualifications management
+- [ ] Job search and filtering functionality
+- [ ] Job duplication and cloning features
+- [ ] Template management interface
+- [ ] Search functionality with pg_search
+- [ ] Template and content feature tests
+
+#### Phase 3.4: Public Job Board & Analytics ⏳
+**Status**: Follows 3.3  
+**Branch**: `feature/pr-3.4-job-board-analytics`  
+**Description**: Public job board and performance metrics
+
+**Planned Work**:
+- [ ] Public job board with SEO optimization
+- [ ] Job analytics and application metrics
+- [ ] Bulk job operations (publish/archive)
+- [ ] Job performance tracking
+- [ ] Public API endpoints for jobs
+- [ ] Job board customization options
+- [ ] Analytics dashboard
+- [ ] Performance optimization and caching
 
 ## Upcoming Phases 📋
 
