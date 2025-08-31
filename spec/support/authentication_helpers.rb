@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Authentication helpers for testing user sessions
 module AuthenticationHelpers
   # Sign in a user for controller and request specs

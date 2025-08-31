@@ -2,3 +2,5 @@
 //= link_directory ../javascripts .js
 //= link_directory ../stylesheets .css
 //= link actiontext.css
+//= link application.js
+//= link_tree ../../javascript .js

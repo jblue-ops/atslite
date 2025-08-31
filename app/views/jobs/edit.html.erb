@@ -1,0 +1,33 @@
+<% content_for :title, "Edit #{@job.title} - ATS Lite" %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="mb-8">
+    <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+      <%= link_to "Jobs", jobs_path, class: "hover:text-gray-700" %>
+      <span>/</span>
+      <%= link_to @job.title, @job, class: "hover:text-gray-700" %>
+      <span>/</span>
+      <span class="text-gray-900 font-medium">Edit</span>
+    </nav>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Edit Job</h1>
+        <p class="text-gray-600 mt-2">Update the job details below.</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <%= link_to @job, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Job
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-8">
+    <%= render "form", job: @job %>
+  </div>
+</div>
