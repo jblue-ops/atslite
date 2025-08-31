@@ -1,0 +1,294 @@
+<% content_for :title, @job.display_title %>
+
+<div class="max-w-4xl mx-auto">
+  <!-- Header with Actions -->
+  <div class="mb-6">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <%= link_to "← Back to Jobs", jobs_path, 
+            class: "text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block" %>
+        <h1 class="text-3xl font-bold text-gray-900"><%= @job.display_title %></h1>
+        <div class="flex items-center space-x-4 mt-2">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                     <%= @job.status == 'published' ? 'bg-green-100 text-green-800' :
+                         @job.status == 'draft' ? 'bg-gray-100 text-gray-800' :
+                         @job.status == 'closed' ? 'bg-red-100 text-red-800' :
+                         'bg-yellow-100 text-yellow-800' %>">
+            <%= @job.status.humanize %>
+          </span>
+          
+          <% if @job.expires_at.present? %>
+            <span class="text-sm text-gray-500">
+              <% if @job.expired? %>
+                <span class="text-red-600">Expired <%= time_ago_in_words(@job.expires_at) %> ago</span>
+              <% else %>
+                Expires in <%= pluralize(@job.days_until_expiry, 'day') %>
+              <% end %>
+            </span>
+          <% end %>
+          
+          <span class="text-sm text-gray-500">
+            Posted <%= time_ago_in_words(@job.created_at) %> ago
+          </span>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex space-x-2">
+        <% if policy(@job).edit? %>
+          <%= link_to "Edit Job", edit_job_path(@job), 
+              class: "inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        <% end %>
+
+        <!-- State Transition Buttons -->
+        <% case @job.status %>
+        <% when 'draft' %>
+          <% if policy(@job).publish? %>
+            <%= link_to "Publish", publish_job_path(@job), method: :patch,
+                class: "inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+          <% end %>
+        <% when 'published' %>
+          <% if policy(@job).close? %>
+            <%= link_to "Close", close_job_path(@job), method: :patch,
+                class: "inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+          <% end %>
+        <% when 'closed' %>
+          <% if policy(@job).reopen? %>
+            <%= link_to "Reopen", reopen_job_path(@job), method: :patch,
+                class: "inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+          <% end %>
+        <% end %>
+
+        <% if policy(@job).archive? && @job.status != 'archived' %>
+          <%= link_to "Archive", archive_job_path(@job), method: :patch,
+              class: "inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" %>
+        <% end %>
+
+        <% if policy(@job).unarchive? && @job.status == 'archived' %>
+          <%= link_to "Unarchive", unarchive_job_path(@job), method: :patch,
+              class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Job Statistics -->
+    <div class="flex space-x-6 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <%= pluralize(@job.application_count, 'Application') %>
+      </div>
+      <div class="flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+          <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+        </svg>
+        <%= pluralize(@job.view_count, 'View') %>
+      </div>
+      <div class="flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+        </svg>
+        Updated <%= time_ago_in_words(@job.updated_at) %> ago
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Job Content (Left Column) -->
+    <div class="lg:col-span-2">
+      <!-- Job Description -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Job Description</h2>
+        <div class="prose prose-gray max-w-none">
+          <%= @job.description %>
+        </div>
+      </div>
+
+      <!-- Requirements -->
+      <% if @job.requirements.present? %>
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
+          <div class="prose prose-gray max-w-none">
+            <%= @job.requirements %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Qualifications -->
+      <% if @job.qualifications.present? %>
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Qualifications</h2>
+          <div class="prose prose-gray max-w-none">
+            <%= @job.qualifications %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Benefits -->
+      <% if @job.benefits.present? %>
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Benefits</h2>
+          <div class="prose prose-gray max-w-none">
+            <%= @job.benefits %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Application Instructions -->
+      <% if @job.application_instructions.present? %>
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">How to Apply</h2>
+          <div class="prose prose-gray max-w-none">
+            <%= @job.application_instructions %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Job Details Sidebar (Right Column) -->
+    <div class="lg:col-span-1">
+      <!-- Quick Details -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Job Details</h3>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Employment Type</dt>
+            <dd class="text-sm text-gray-900"><%= @job.employment_type_display %></dd>
+          </div>
+          
+          <% if @job.experience_level.present? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Experience Level</dt>
+              <dd class="text-sm text-gray-900"><%= @job.experience_level_display %></dd>
+            </div>
+          <% end %>
+          
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Location</dt>
+            <dd class="text-sm text-gray-900"><%= @job.display_location %></dd>
+          </div>
+          
+          <% if @job.salary_range_min.present? || @job.salary_range_max.present? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Salary Range</dt>
+              <dd class="text-sm text-gray-900"><%= @job.salary_range_display %></dd>
+            </div>
+          <% end %>
+          
+          <% if @job.remote_work_allowed? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Remote Work</dt>
+              <dd class="text-sm text-gray-900">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Allowed
+                </span>
+              </dd>
+            </div>
+          <% end %>
+        </dl>
+      </div>
+
+      <!-- Organization Info -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Organization</h3>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <span class="text-sm font-medium text-gray-700">
+                <%= @job.organization.name.first.upcase %>
+              </span>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-900"><%= @job.organization.name %></p>
+            </div>
+          </div>
+          
+          <% if @job.department.present? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Department</dt>
+              <dd class="text-sm text-gray-900"><%= @job.department.name %></dd>
+            </div>
+          <% end %>
+          
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Hiring Manager</dt>
+            <dd class="text-sm text-gray-900">
+              <%= @job.hiring_manager.first_name %> <%= @job.hiring_manager.last_name %>
+            </dd>
+          </div>
+        </div>
+      </div>
+
+      <!-- Publishing Info -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Publishing Info</h3>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Created</dt>
+            <dd class="text-sm text-gray-900"><%= @job.created_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+          
+          <% if @job.published_at.present? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Published</dt>
+              <dd class="text-sm text-gray-900"><%= @job.published_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+            </div>
+          <% end %>
+          
+          <% if @job.expires_at.present? %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Expires</dt>
+              <dd class="text-sm <%= @job.expired? ? 'text-red-600' : 'text-gray-900' %>">
+                <%= @job.expires_at.strftime("%B %d, %Y at %I:%M %p") %>
+                <% if @job.expired? %>
+                  <span class="block text-xs text-red-600">Expired</span>
+                <% end %>
+              </dd>
+            </div>
+          <% end %>
+          
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+            <dd class="text-sm text-gray-900"><%= @job.updated_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Actions -->
+      <% if policy(@job).destroy? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Danger Zone</h3>
+          <%= link_to "Delete Job", job_path(@job), method: :delete,
+              data: { 
+                confirm: "Are you sure you want to delete this job? This action cannot be undone." 
+              },
+              class: "w-full inline-flex justify-center items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Related Jobs -->
+  <% if @related_jobs.any? %>
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Jobs</h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <% @related_jobs.each do |job| %>
+          <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200">
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                <%= link_to job.display_title, job_path(job), 
+                    class: "hover:text-blue-600 transition-colors duration-200" %>
+              </h3>
+              <p class="text-sm text-gray-600 mb-2"><%= job.display_location %></p>
+              <p class="text-sm text-gray-600"><%= job.employment_type_display %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

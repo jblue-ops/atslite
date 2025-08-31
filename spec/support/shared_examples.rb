@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Shared examples for common behaviors across the ATS application
 
 # Authentication and authorization shared examples

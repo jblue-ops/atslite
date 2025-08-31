@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :interview do
     application
@@ -194,8 +196,8 @@ FactoryBot.define do
       cultural_fit { rand(4..5) }
       recommendation { %w[strong_hire hire].sample }
       comments do
-        "Excellent candidate with strong technical skills. " +
-          "Demonstrated clear thinking and good communication throughout the interview. " +
+        "Excellent candidate with strong technical skills. " \
+          "Demonstrated clear thinking and good communication throughout the interview. " \
           "Would be a great addition to the team."
       end
     end
@@ -205,8 +207,8 @@ FactoryBot.define do
       technical_skills { rand(1..2) }
       recommendation { %w[no_hire strong_no_hire].sample }
       comments do
-        "Candidate struggled with basic technical concepts. " +
-          "Unable to solve the coding challenge effectively. " +
+        "Candidate struggled with basic technical concepts. " \
+          "Unable to solve the coding challenge effectively. " \
           "Would need significant mentoring to be productive."
       end
     end
@@ -217,8 +219,8 @@ FactoryBot.define do
       communication { rand(3..4) }
       recommendation { "no_hire" }
       comments do
-        "Candidate has good communication skills and seems motivated. " +
-          "However, technical skills are not quite at the level we need for this role. " +
+        "Candidate has good communication skills and seems motivated. " \
+          "However, technical skills are not quite at the level we need for this role. " \
           "Might be better suited for a more junior position."
       end
     end
@@ -247,7 +249,7 @@ FactoryBot.define do
       material_type { "resume" }
       after(:build) do |material|
         material.file.attach(
-          io: File.open(Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf")),
+          io: Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf").open,
           filename: "candidate_resume.pdf",
           content_type: "application/pdf"
         )

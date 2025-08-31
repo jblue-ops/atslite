@@ -121,17 +121,130 @@ class Job < ApplicationRecord
   before_save :update_metrics
   after_create :set_default_settings
 
+  # Rich text content
+  has_rich_text :description
+  has_rich_text :requirements
+  has_rich_text :qualifications
+  has_rich_text :benefits
+  has_rich_text :application_instructions
+
   # Multi-tenant support
   acts_as_tenant :organization
+
+  # Full-text search configuration
+  include PgSearch::Model
+
+  pg_search_scope :search_by_content,
+                  against: {
+                    title: "A",
+                    location: "B"
+                  },
+                  associated_against: {
+                    rich_text_description: [:body],
+                    rich_text_requirements: [:body],
+                    rich_text_qualifications: [:body],
+                    rich_text_benefits: [:body],
+                    rich_text_application_instructions: [:body]
+                  },
+                  using: {
+                    tsearch: {
+                      prefix: true,
+                      any_word: true,
+                      dictionary: "english"
+                    },
+                    trigram: {
+                      threshold: 0.1
+                    }
+                  },
+                  ranked_by: ":tsearch + (0.5 * :trigram)"
+
+  pg_search_scope :search_by_title,
+                  against: [:title],
+                  using: {
+                    tsearch: {
+                      prefix: true,
+                      dictionary: "english"
+                    }
+                  }
+
+  pg_search_scope :search_by_location,
+                  against: [:location],
+                  using: {
+                    tsearch: {
+                      prefix: true,
+                      dictionary: "english"
+                    },
+                    trigram: {
+                      threshold: 0.2
+                    }
+                  }
 
   # Class methods
   def self.search(query)
     return none if query.blank?
 
-    where(
-      "title ILIKE :query OR description ILIKE :query OR location ILIKE :query",
-      query: "%#{query}%"
-    )
+    search_by_content(query)
+      .includes(rich_text_description: :blob)
+      .includes(rich_text_requirements: :blob)
+      .includes(rich_text_qualifications: :blob)
+      .includes(rich_text_benefits: :blob)
+      .includes(rich_text_application_instructions: :blob)
+  end
+
+  def self.advanced_search(params = {})
+    scope = all
+
+    # Text search across all content
+    scope = scope.search_by_content(params[:query]) if params[:query].present?
+
+    # Title-specific search
+    scope = scope.search_by_title(params[:title]) if params[:title].present?
+
+    # Location-specific search
+    scope = scope.search_by_location(params[:location]) if params[:location].present?
+
+    # Employment type filter
+    scope = scope.by_employment_type(params[:employment_type]) if params[:employment_type].present?
+
+    # Experience level filter
+    scope = scope.by_experience_level(params[:experience_level]) if params[:experience_level].present?
+
+    # Salary range filter
+    if params[:min_salary].present? || params[:max_salary].present?
+      scope = scope.salary_range(params[:min_salary], params[:max_salary])
+    end
+
+    # Remote work filter
+    scope = scope.remote_friendly if ["1", true].include?(params[:remote_only])
+
+    # Status filters
+    case params[:status]
+    when "published"
+      scope = scope.published
+    when "draft"
+      scope = scope.draft
+    when "closed"
+      scope = scope.closed
+    when "archived"
+      scope = scope.archived
+    when "active"
+      scope = scope.active
+    end
+
+    # Date filters
+    scope = scope.where(published_at: (params[:published_after])..) if params[:published_after].present?
+
+    scope = scope.where(published_at: ..(params[:published_before])) if params[:published_before].present?
+
+    # Expiration filters
+    case params[:expiration]
+    when "expired"
+      scope = scope.expired
+    when "active"
+      scope = scope.not_expired
+    end
+
+    scope
   end
 
   def self.salary_range(min_salary, max_salary)

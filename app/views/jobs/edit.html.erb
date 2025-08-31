@@ -1,0 +1,50 @@
+<% content_for :title, "Edit #{@job.display_title}" %>
+
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <%= link_to "← Back to Job", job_path(@job), 
+        class: "text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block" %>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Edit Job Posting</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Make changes to your job posting. Changes will be saved immediately.
+        </p>
+      </div>
+      
+      <!-- Status indicator -->
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                   <%= @job.status == 'published' ? 'bg-green-100 text-green-800' :
+                       @job.status == 'draft' ? 'bg-gray-100 text-gray-800' :
+                       @job.status == 'closed' ? 'bg-red-100 text-red-800' :
+                       'bg-yellow-100 text-yellow-800' %>">
+          <%= @job.status.humanize %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Publishing Warning -->
+  <% if @job.published? %>
+    <div class="rounded-md bg-blue-50 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-700">
+            <strong>Note:</strong> This job is currently published and visible to applicants. 
+            Any changes you make will be immediately visible.
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Form -->
+  <%= render 'form', job: @job %>
+</div>

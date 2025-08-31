@@ -1,0 +1,327 @@
+<% content_for :title, "Advanced Job Search" %>
+
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Advanced Job Search</h1>
+      <p class="mt-2 text-sm text-gray-600">Use powerful search and filtering options to find the perfect job opportunities.</p>
+    </div>
+    
+    <div class="flex space-x-3">
+      <%= link_to "← Back to Jobs", jobs_path, 
+          class: "inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" %>
+      
+      <% if policy(Job).new? %>
+        <%= link_to "Post New Job", new_job_path, 
+            class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Advanced Search Form -->
+  <div class="bg-white shadow rounded-lg p-6 mb-8">
+    <%= form_with url: search_jobs_path, method: :get, local: true, id: "advanced-search-form" do |form| %>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Text Search Section -->
+        <div class="lg:col-span-2">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Content Search</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- General Search -->
+            <div>
+              <%= form.label :query, "Search everything", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.text_field :query, 
+                  value: @search_params[:query], 
+                  placeholder: "Keywords, skills, company names...", 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+              <p class="mt-1 text-xs text-gray-500">Searches across job titles, descriptions, requirements, and qualifications</p>
+            </div>
+            
+            <!-- Title-specific Search -->
+            <div>
+              <%= form.label :title, "Job title", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.text_field :title, 
+                  value: @search_params[:title], 
+                  placeholder: "Software Engineer, Manager...", 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+              <p class="mt-1 text-xs text-gray-500">Search specifically in job titles</p>
+            </div>
+            
+            <!-- Location Search -->
+            <div>
+              <%= form.label :location, "Location", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.text_field :location, 
+                  value: @search_params[:location], 
+                  placeholder: "San Francisco, Remote...", 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+              <p class="mt-1 text-xs text-gray-500">Search by city, state, or region</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Characteristics -->
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Job Details</h3>
+          
+          <!-- Employment Type -->
+          <div class="mb-4">
+            <%= form.label :employment_type, "Employment Type", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.select :employment_type, 
+                options_for_select([
+                  ["Any", ""],
+                  ["Full Time", "full_time"],
+                  ["Part Time", "part_time"],
+                  ["Contract", "contract"],
+                  ["Temporary", "temporary"],
+                  ["Internship", "internship"]
+                ], @search_params[:employment_type]),
+                {},
+                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+          </div>
+          
+          <!-- Experience Level -->
+          <div class="mb-4">
+            <%= form.label :experience_level, "Experience Level", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.select :experience_level, 
+                options_for_select([
+                  ["Any", ""],
+                  ["Entry Level", "entry"],
+                  ["Junior", "junior"],
+                  ["Mid Level", "mid"],
+                  ["Senior", "senior"],
+                  ["Lead", "lead"],
+                  ["Executive", "executive"]
+                ], @search_params[:experience_level]),
+                {},
+                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+          </div>
+
+          <!-- Remote Work -->
+          <div class="mb-4">
+            <div class="flex items-center">
+              <%= form.check_box :remote_only, 
+                  { checked: @search_params[:remote_only] == '1' || @search_params[:remote_only] == true }, 
+                  "1", "" %>
+              <%= form.label :remote_only, "Remote work friendly", class: "ml-2 text-sm text-gray-700" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary and Filters -->
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Salary & Status</h3>
+          
+          <!-- Salary Range -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Salary Range (USD)</label>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <%= form.number_field :min_salary, 
+                    value: @search_params[:min_salary], 
+                    placeholder: "Min", 
+                    step: 1000,
+                    class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+              </div>
+              <div>
+                <%= form.number_field :max_salary, 
+                    value: @search_params[:max_salary], 
+                    placeholder: "Max", 
+                    step: 1000,
+                    class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Job Status -->
+          <div class="mb-4">
+            <%= form.label :status, "Status", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.select :status,
+                options_for_select([
+                  ["All Statuses", ""],
+                  ["Published", "published"],
+                  ["Draft", "draft"],
+                  ["Closed", "closed"],
+                  ["Archived", "archived"],
+                  ["Active (Published + Open)", "active"]
+                ], @search_params[:status]),
+                {},
+                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+          </div>
+
+          <!-- Expiration Filter -->
+          <div class="mb-4">
+            <%= form.label :expiration, "Expiration", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.select :expiration,
+                options_for_select([
+                  ["Any", ""],
+                  ["Not Expired", "active"],
+                  ["Expired", "expired"]
+                ], @search_params[:expiration]),
+                {},
+                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+          </div>
+        </div>
+
+        <!-- Date Filters -->
+        <div class="lg:col-span-2">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Date Range</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <%= form.label :published_after, "Published after", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.date_field :published_after, 
+                  value: @search_params[:published_after], 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <%= form.label :published_before, "Published before", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.date_field :published_before, 
+                  value: @search_params[:published_before], 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Actions -->
+        <div class="lg:col-span-2">
+          <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+            <button type="button" onclick="clearSearchForm()" class="text-sm text-gray-500 hover:text-gray-700">
+              Clear all filters
+            </button>
+            
+            <div class="flex space-x-3">
+              <%= link_to "Cancel", jobs_path, 
+                  class: "inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+              
+              <%= form.submit "Search Jobs", 
+                  class: "inline-flex items-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Search Results (if any) -->
+  <% if @jobs %>
+    <!-- Results Summary -->
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-2">Search Results</h2>
+      <p class="text-sm text-gray-600">
+        Found <%= pluralize(@jobs.count, 'job') %> 
+        <% if @jobs.respond_to?(:total_count) && @jobs.total_count != @jobs.count %>
+          of <%= @jobs.total_count %> total
+        <% end %>
+      </p>
+    </div>
+
+    <!-- Results Grid (using same styling as index) -->
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <% @jobs.each do |job| %>
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200">
+          <div class="p-6">
+            <!-- Job Header -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                           <%= job.status == 'published' ? 'bg-green-100 text-green-800' :
+                               job.status == 'draft' ? 'bg-gray-100 text-gray-800' :
+                               job.status == 'closed' ? 'bg-red-100 text-red-800' :
+                               'bg-yellow-100 text-yellow-800' %>">
+                  <%= job.status.humanize %>
+                </span>
+              </div>
+              
+              <div class="flex items-center text-sm text-gray-500">
+                <%= time_ago_in_words(job.created_at) %> ago
+              </div>
+            </div>
+            
+            <!-- Job Title and Company -->
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              <%= link_to job.display_title, job_path(job), 
+                  class: "hover:text-blue-600 transition-colors duration-200" %>
+            </h3>
+            
+            <div class="text-sm text-gray-600 mb-3">
+              <div class="flex items-center mb-1">
+                <%= job.employment_type_display %>
+              </div>
+              
+              <div class="flex items-center mb-1">
+                <%= job.display_location %>
+              </div>
+              
+              <% if job.salary_range_min.present? || job.salary_range_max.present? %>
+                <div class="flex items-center mb-1">
+                  <%= job.salary_range_display %>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Job Description Preview -->
+            <div class="text-sm text-gray-700 mb-4">
+              <%= truncate(strip_tags(job.description.to_s), length: 150) %>
+            </div>
+            
+            <!-- Job Actions -->
+            <div class="flex justify-between items-center">
+              <div class="text-xs text-gray-500">
+                <%= pluralize(job.application_count, 'application') %> • 
+                <%= pluralize(job.view_count, 'view') %>
+              </div>
+              
+              <div class="flex space-x-2">
+                <%= link_to "View", job_path(job), 
+                    class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+                    
+                <% if policy(job).edit? %>
+                  <%= link_to "Edit", edit_job_path(job), 
+                      class: "text-gray-600 hover:text-gray-800 text-sm font-medium" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Empty State for Search Results -->
+    <% if @jobs.empty? %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 5a2 2 0 11-4 0 2 2 0 014 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No jobs found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          No jobs match your search criteria. Try adjusting your filters or search terms.
+        </p>
+        <div class="mt-6">
+          <button type="button" onclick="clearSearchForm()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Pagination -->
+    <% if @jobs.respond_to?(:current_page) && @jobs.count > 0 %>
+      <div class="mt-8 flex items-center justify-center">
+        <%= paginate @jobs, theme: 'twitter_bootstrap_5' %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<script>
+  function clearSearchForm() {
+    const form = document.getElementById('advanced-search-form');
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+      if (input.type === 'checkbox') {
+        input.checked = false;
+      } else {
+        input.value = '';
+      }
+    });
+  }
+</script>
