@@ -6,6 +6,13 @@ class Job < ApplicationRecord
   belongs_to :hiring_manager, class_name: "User", optional: false
   belongs_to :department, optional: true
 
+  # Rich text content
+  has_rich_text :description
+  has_rich_text :requirements
+  has_rich_text :qualifications
+  has_rich_text :benefits
+  has_rich_text :application_instructions
+
   # Future associations for upcoming phases
   has_many :applications, dependent: :destroy
   has_many :candidates, through: :applications
@@ -14,7 +21,7 @@ class Job < ApplicationRecord
 
   # Validations
   validates :title, presence: true, length: { minimum: 3, maximum: 200 }
-  validates :description, presence: true, length: { minimum: 10 }
+  validates :description, presence: true
   validates :employment_type, inclusion: {
     in: %w[full_time part_time contract temporary internship],
     message: "must be a valid employment type"
@@ -128,8 +135,10 @@ class Job < ApplicationRecord
   def self.search(query)
     return none if query.blank?
 
+    # Basic search in title and location for now
+    # Rich text search will be implemented in Phase 3.3.3 with pg_search
     where(
-      "title ILIKE :query OR description ILIKE :query OR location ILIKE :query",
+      "title ILIKE :query OR location ILIKE :query",
       query: "%#{query}%"
     )
   end

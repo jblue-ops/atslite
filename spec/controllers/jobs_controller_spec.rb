@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe JobsController, type: :controller do
-  let(:organization)     { create(:organization) }
-  let(:admin_user)       { create(:user, :admin, organization: organization) }
-  let(:hiring_manager)   { create(:user, :hiring_manager, organization: organization) }
-  let(:recruiter_user)   { create(:user, :recruiter, organization: organization) }
-  let(:interviewer_user) { create(:user, :interviewer, organization: organization) }
+  let(:organization)     { create(:organization)                                                    }
+  let(:admin_user)       { create(:user, :admin, organization: organization)                        }
+  let(:hiring_manager)   { create(:user, :hiring_manager, organization: organization)               }
+  let(:recruiter_user)   { create(:user, :recruiter, organization: organization)                    }
+  let(:interviewer_user) { create(:user, :interviewer, organization: organization)                  }
   let(:job)              { create(:job, organization: organization, hiring_manager: hiring_manager) }
 
   before do
@@ -474,7 +474,7 @@ RSpec.describe JobsController, type: :controller do
 
   describe "private methods" do
     describe "#job_params" do
-      let(:controller_instance) { JobsController.new }
+      let(:controller_instance) { described_class.new }
       let(:params) do
         ActionController::Parameters.new(
           job: {
@@ -504,9 +504,9 @@ RSpec.describe JobsController, type: :controller do
 
         expect(permitted_params).to include(
           "title", "description", "location", "employment_type",
-          "experience_level", "salary_range_min", "salary_range_max", 
-          "currency", "remote_work_allowed", "requirements", 
-          "qualifications", "benefits", "application_instructions", 
+          "experience_level", "salary_range_min", "salary_range_max",
+          "currency", "remote_work_allowed", "requirements",
+          "qualifications", "benefits", "application_instructions",
           "department_id", "expires_at"
         )
         expect(permitted_params).not_to have_key("unauthorized_param")

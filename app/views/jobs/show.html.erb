@@ -121,7 +121,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Job Description</h2>
         <div class="prose prose-sm max-w-none">
-          <%= simple_format(@job.description) %>
+          <%= @job.description %>
         </div>
       </div>
       
@@ -130,7 +130,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
           <div class="prose prose-sm max-w-none">
-            <%= simple_format(@job.requirements) %>
+            <%= @job.requirements %>
           </div>
         </div>
       <% end %>
@@ -140,7 +140,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Preferred Qualifications</h2>
           <div class="prose prose-sm max-w-none">
-            <%= simple_format(@job.qualifications) %>
+            <%= @job.qualifications %>
           </div>
         </div>
       <% end %>
@@ -150,7 +150,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Benefits</h2>
           <div class="prose prose-sm max-w-none">
-            <%= simple_format(@job.benefits) %>
+            <%= @job.benefits %>
           </div>
         </div>
       <% end %>
@@ -160,7 +160,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Application Instructions</h2>
           <div class="prose prose-sm max-w-none">
-            <%= simple_format(@job.application_instructions) %>
+            <%= @job.application_instructions %>
           </div>
         </div>
       <% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_31_010234) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -20,7 +20,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.string "name", null: false
     t.text "body"
     t.string "record_type", null: false
-    t.bigint "record_id", null: false
+    t.string "record_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
@@ -29,7 +29,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
-    t.bigint "record_id", null: false
+    t.string "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
@@ -418,7 +418,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.uuid "department_id"
     t.uuid "hiring_manager_id"
     t.string "title", null: false
-    t.text "description", null: false
+    t.text "description"
     t.text "requirements"
     t.string "employment_type", null: false
     t.string "location"
@@ -437,6 +437,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.integer "application_count", default: 0
     t.integer "view_count", default: 0
     t.jsonb "settings", default: {}
+    t.text "benefits"
+    t.text "application_instructions"
     t.index ["department_id"], name: "index_jobs_on_department_id"
     t.index ["employment_type"], name: "index_jobs_on_employment_type"
     t.index ["experience_level"], name: "index_jobs_on_experience_level"

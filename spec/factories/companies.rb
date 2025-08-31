@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :company do
     name { Faker::Company.name }
@@ -18,7 +20,7 @@ FactoryBot.define do
     trait :with_logo do
       after(:build) do |company|
         company.logo.attach(
-          io: File.open(Rails.root.join("spec", "fixtures", "files", "company_logo.png")),
+          io: Rails.root.join("spec", "fixtures", "files", "company_logo.png").open,
           filename: "company_logo.png",
           content_type: "image/png"
         )

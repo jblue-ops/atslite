@@ -24,7 +24,7 @@
 
       <div>
         <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= form.text_area :description, rows: 6, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+        <%= form.rich_text_area :description, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div>
@@ -109,22 +109,22 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div>
         <%= form.label :requirements, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= form.text_area :requirements, rows: 4, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Required skills, experience, education..." %>
+        <%= form.rich_text_area :requirements, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Required skills, experience, education..." %>
       </div>
 
       <div>
         <%= form.label :qualifications, "Preferred Qualifications", class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= form.text_area :qualifications, rows: 4, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Nice to have qualifications..." %>
+        <%= form.rich_text_area :qualifications, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Nice to have qualifications..." %>
       </div>
 
       <div>
         <%= form.label :benefits, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= form.text_area :benefits, rows: 3, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Health insurance, 401k, PTO..." %>
+        <%= form.rich_text_area :benefits, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Health insurance, 401k, PTO..." %>
       </div>
 
       <div>
         <%= form.label :application_instructions, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= form.text_area :application_instructions, rows: 3, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Special instructions for applicants..." %>
+        <%= form.rich_text_area :application_instructions, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Special instructions for applicants..." %>
       </div>
     </div>
   </div>
