@@ -1,0 +1,56 @@
+<% content_for :title, "Edit #{@job_template.name} - ATS Lite" %>
+
+<div class="max-w-6xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Edit Job Template</h1>
+        <p class="text-gray-600 mt-2">Update template: <strong><%= @job_template.name %></strong></p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <%= link_to @job_template, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          View Template
+        <% end %>
+        
+        <%= link_to job_templates_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Templates
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Stats -->
+  <% if @job_template.usage_count > 0 %>
+    <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-800">
+            This template has been used <strong><%= pluralize(@job_template.usage_count, 'time') %></strong>.
+            Changes will only affect new jobs created from this template.
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Form -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-8">
+      <%= render 'form', job_template: @job_template %>
+    </div>
+  </div>
+</div>
