@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :candidate do
     first_name { Faker::Name.first_name }
@@ -20,7 +22,7 @@ FactoryBot.define do
     trait :with_resume do
       after(:build) do |candidate|
         candidate.resume.attach(
-          io: File.open(Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf")),
+          io: Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf").open,
           filename: "resume.pdf",
           content_type: "application/pdf"
         )
@@ -30,7 +32,7 @@ FactoryBot.define do
     trait :with_cover_letter do
       after(:build) do |candidate|
         candidate.cover_letter.attach(
-          io: File.open(Rails.root.join("spec", "fixtures", "files", "cover_letter.pdf")),
+          io: Rails.root.join("spec", "fixtures", "files", "cover_letter.pdf").open,
           filename: "cover_letter.pdf",
           content_type: "application/pdf"
         )
@@ -41,7 +43,7 @@ FactoryBot.define do
       after(:build) do |candidate|
         3.times do |i|
           candidate.portfolio_files.attach(
-            io: File.open(Rails.root.join("spec", "fixtures", "files", "portfolio_sample.pdf")),
+            io: Rails.root.join("spec", "fixtures", "files", "portfolio_sample.pdf").open,
             filename: "portfolio_#{i + 1}.pdf",
             content_type: "application/pdf"
           )
@@ -179,7 +181,7 @@ FactoryBot.define do
     company { Faker::Company.name }
     location { "#{Faker::Address.city}, #{Faker::Address.state}" }
     start_date { rand(5.years.ago..2.years.ago) }
-    end_date { start_date + rand(6.months..2.years) }
+    end_date { start_date + rand((6.months)..(2.years)) }
     description { Faker::Lorem.paragraphs(number: 2).join("\n") }
 
     trait :current_job do
@@ -190,8 +192,8 @@ FactoryBot.define do
     trait :software_engineer do
       title { "Software Engineer" }
       description do
-        "• Developed and maintained web applications using Ruby on Rails\n" +
-          "• Collaborated with cross-functional teams to deliver features\n" +
+        "• Developed and maintained web applications using Ruby on Rails\n" \
+          "• Collaborated with cross-functional teams to deliver features\n" \
           "• Implemented automated testing and CI/CD pipelines"
       end
     end

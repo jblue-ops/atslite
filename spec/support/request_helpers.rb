@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Request helpers for API testing
 module RequestHelpers
   # JSON request helpers

@@ -79,13 +79,13 @@ RSpec.describe User, type: :model do
     let!(:admin_user)    { create(:user, organization: organization, role: "admin") }
 
     it "returns active users" do
-      expect(User.active).to include(active_user)
-      expect(User.active).not_to include(inactive_user)
+      expect(described_class.active).to include(active_user)
+      expect(described_class.active).not_to include(inactive_user)
     end
 
     it "returns users by role" do
-      expect(User.admins).to include(admin_user)
-      expect(User.admins).not_to include(active_user)
+      expect(described_class.admins).to include(admin_user)
+      expect(described_class.admins).not_to include(active_user)
     end
   end
 

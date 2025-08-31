@@ -1,0 +1,195 @@
+<% content_for :title, "Job Postings" %>
+
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold text-gray-900">Job Postings</h1>
+  
+  <div class="flex space-x-3">
+    <% if policy(Job).new? %>
+      <%= link_to "Post New Job", new_job_path, 
+          class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="mb-6 bg-white shadow rounded-lg p-6">
+  <!-- Basic Search Form -->
+  <%= form_with url: jobs_path, method: :get, local: true, class: "space-y-4" do |form| %>
+    <div class="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
+      <!-- Quick Search -->
+      <div class="flex-1">
+        <%= form.text_field :q, 
+            value: params[:q], 
+            placeholder: "Search jobs by title, description, or location...", 
+            class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+      
+      <!-- Quick Filters -->
+      <div class="flex space-x-2">
+        <%= form.select :employment_type, 
+            options_for_select([
+              ["All Types", ""],
+              ["Full Time", "full_time"],
+              ["Part Time", "part_time"], 
+              ["Contract", "contract"],
+              ["Temporary", "temporary"],
+              ["Internship", "internship"]
+            ], params[:employment_type]),
+            {},
+            { class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+            
+        <%= form.select :status,
+            options_for_select([
+              ["All Statuses", ""],
+              ["Published", "published"],
+              ["Draft", "draft"],
+              ["Closed", "closed"],
+              ["Archived", "archived"]
+            ], params[:status]),
+            {},
+            { class: "rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+      
+      <!-- Search Button -->
+      <div class="flex space-x-2">
+        <%= form.submit "Search", 
+            class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        
+        <%= link_to "Advanced Search", search_jobs_path(request.query_parameters), 
+            class: "inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" %>
+      </div>
+    </div>
+    
+    <!-- Quick Remote Filter -->
+    <div class="flex items-center">
+      <%= form.check_box :remote_only, 
+          { checked: params[:remote_only] == '1' }, 
+          "1", "" %>
+      <%= form.label :remote_only, "Remote work friendly only", class: "ml-2 text-sm text-gray-700" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Results Summary -->
+<% if @jobs.respond_to?(:total_count) %>
+  <div class="mb-4 text-sm text-gray-600">
+    Showing <%= pluralize(@jobs.count, 'job') %> 
+    <% if @jobs.total_count != @jobs.count %>
+      of <%= @jobs.total_count %> total
+    <% end %>
+    <% if params[:q].present? %>
+      for "<%= params[:q] %>"
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Jobs Grid -->
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+  <% @jobs.each do |job| %>
+    <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200">
+      <div class="p-6">
+        <!-- Job Header -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                       <%= job.status == 'published' ? 'bg-green-100 text-green-800' :
+                           job.status == 'draft' ? 'bg-gray-100 text-gray-800' :
+                           job.status == 'closed' ? 'bg-red-100 text-red-800' :
+                           'bg-yellow-100 text-yellow-800' %>">
+              <%= job.status.humanize %>
+            </span>
+          </div>
+          
+          <div class="flex items-center text-sm text-gray-500">
+            <%= time_ago_in_words(job.created_at) %> ago
+          </div>
+        </div>
+        
+        <!-- Job Title and Company -->
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+          <%= link_to job.display_title, job_path(job), 
+              class: "hover:text-blue-600 transition-colors duration-200" %>
+        </h3>
+        
+        <div class="text-sm text-gray-600 mb-3">
+          <div class="flex items-center mb-1">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5z" clip-rule="evenodd" />
+            </svg>
+            <%= job.employment_type_display %>
+          </div>
+          
+          <div class="flex items-center mb-1">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+            </svg>
+            <%= job.display_location %>
+          </div>
+          
+          <% if job.salary_range_min.present? || job.salary_range_max.present? %>
+            <div class="flex items-center mb-1">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.51-1.31c-.562-.649-1.413-1.076-2.353-1.253V5z" clip-rule="evenodd" />
+              </svg>
+              <%= job.salary_range_display %>
+            </div>
+          <% end %>
+        </div>
+        
+        <!-- Job Description Preview -->
+        <div class="text-sm text-gray-700 mb-4">
+          <%= truncate(strip_tags(job.description.to_s), length: 150) %>
+        </div>
+        
+        <!-- Job Actions -->
+        <div class="flex justify-between items-center">
+          <div class="text-xs text-gray-500">
+            <%= pluralize(job.application_count, 'application') %> • 
+            <%= pluralize(job.view_count, 'view') %>
+          </div>
+          
+          <div class="flex space-x-2">
+            <%= link_to "View", job_path(job), 
+                class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+                
+            <% if policy(job).edit? %>
+              <%= link_to "Edit", edit_job_path(job), 
+                  class: "text-gray-600 hover:text-gray-800 text-sm font-medium" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Empty State -->
+<% if @jobs.empty? %>
+  <div class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+      <path d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">No jobs found</h3>
+    <p class="mt-1 text-sm text-gray-500">
+      <% if params[:q].present? %>
+        No jobs match your search criteria. Try adjusting your search terms.
+      <% else %>
+        Get started by creating your first job posting.
+      <% end %>
+    </p>
+    <% if policy(Job).new? %>
+      <div class="mt-6">
+        <%= link_to "Post New Job", new_job_path, 
+            class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Pagination -->
+<% if @jobs.respond_to?(:current_page) %>
+  <div class="mt-6 flex items-center justify-center">
+    <%= paginate @jobs, theme: 'twitter_bootstrap_5' if @jobs.respond_to?(:current_page) %>
+  </div>
+<% end %>
