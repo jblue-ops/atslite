@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Capybara configuration for system tests
 require "capybara/rails"
 require "capybara/rspec"

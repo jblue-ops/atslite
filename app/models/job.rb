@@ -5,16 +5,25 @@ class Job < ApplicationRecord
   belongs_to :organization, optional: false
   belongs_to :hiring_manager, class_name: "User", optional: false
   belongs_to :department, optional: true
+  belongs_to :job_template, optional: true
+
+  # Rich text content
+  has_rich_text :description
+  has_rich_text :requirements
+  has_rich_text :qualifications
+  has_rich_text :benefits
+  has_rich_text :application_instructions
+
+  # Template association
 
   # Future associations for upcoming phases
   has_many :applications, dependent: :destroy
   has_many :candidates, through: :applications
   has_many :interviews, through: :applications
-  has_many :job_templates, dependent: :destroy
 
   # Validations
   validates :title, presence: true, length: { minimum: 3, maximum: 200 }
-  validates :description, presence: true, length: { minimum: 10 }
+  validates :description, presence: true
   validates :employment_type, inclusion: {
     in: %w[full_time part_time contract temporary internship],
     message: "must be a valid employment type"
@@ -128,8 +137,10 @@ class Job < ApplicationRecord
   def self.search(query)
     return none if query.blank?
 
+    # Basic search in title and location for now
+    # Rich text search will be implemented in Phase 3.3.3 with pg_search
     where(
-      "title ILIKE :query OR description ILIKE :query OR location ILIKE :query",
+      "title ILIKE :query OR location ILIKE :query",
       query: "%#{query}%"
     )
   end
@@ -216,6 +227,53 @@ class Job < ApplicationRecord
   def remove_setting!(key)
     self.settings = settings.except(key.to_s)
     save!
+  end
+
+  def created_from_template?
+    job_template.present?
+  end
+
+  def template_name
+    job_template&.name
+  end
+
+  def template_category
+    job_template&.category
+  end
+
+  def apply_template!(template, user: nil)
+    raise ArgumentError, "Template must belong to the same organization" unless template.organization == organization
+
+    # Apply template attributes
+    assign_attributes(
+      title: template.title,
+      location: template.location,
+      employment_type: template.employment_type,
+      experience_level: template.experience_level,
+      salary_range_min: template.salary_range_min,
+      salary_range_max: template.salary_range_max,
+      currency: template.currency,
+      remote_work_allowed: template.remote_work_allowed,
+      department: template.department,
+      job_template: template
+    )
+
+    # Copy rich text content
+    self.description = template.template_description.body.to_s if template.template_description.present?
+    self.requirements = template.template_requirements.body.to_s if template.template_requirements.present?
+    self.qualifications = template.template_qualifications.body.to_s if template.template_qualifications.present?
+    self.benefits = template.template_benefits.body.to_s if template.template_benefits.present?
+    if template.template_application_instructions.present?
+      self.application_instructions = template.template_application_instructions.body.to_s
+    end
+
+    # Apply default job settings from template
+    self.settings = (settings || {}).merge(template.default_job_settings) if template.default_job_settings.present?
+
+    # Mark template as used
+    template.mark_used_by!(user) if user
+
+    save! if persisted?
   end
 
   def set_default_expiration

@@ -4,6 +4,7 @@ class Organization < ApplicationRecord
   # Multi-tenant root model
   has_many :users, dependent: :destroy
   has_many :jobs, dependent: :destroy
+  has_many :job_templates, dependent: :destroy
   has_many :departments, dependent: :destroy
   has_many :notes, dependent: :destroy
   has_many :communications, dependent: :destroy

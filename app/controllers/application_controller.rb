@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
@@ -8,9 +10,9 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # Pundit authorization checks
-  after_action :verify_authorized, except: :index
-  after_action :verify_policy_scoped, only: :index
+  # Pundit authorization checks (skip for Devise controllers)
+  after_action :verify_authorized, except: :index, unless: :devise_controller?
+  after_action :verify_policy_scoped, only: :index, unless: :devise_controller?
 
   # Pundit error handling
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
@@ -18,8 +20,10 @@ class ApplicationController < ActionController::Base
   protected
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:first_name, :last_name, :phone, :time_zone, organization_attributes: [:name, :domain, :industry]])
-    devise_parameter_sanitizer.permit(:account_update, keys: [:first_name, :last_name, :phone, :time_zone])
+    devise_parameter_sanitizer.permit(:sign_up,
+                                      keys: [:first_name, :last_name, :phone, :time_zone,
+                                             { organization_attributes: %i[name domain industry] }])
+    devise_parameter_sanitizer.permit(:account_update, keys: %i[first_name last_name phone time_zone])
   end
 
   private

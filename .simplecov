@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SimpleCov configuration file for ATS application
 # This file provides default configuration that can be overridden in spec_helper.rb
 

@@ -1,0 +1,175 @@
+<%= form_with model: job_template, local: true, class: "space-y-6" do |form| %>
+  <% if job_template.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+      <h3 class="text-sm font-medium text-red-800 mb-2">
+        <%= pluralize(job_template.errors.count, "error") %> prohibited this template from being saved:
+      </h3>
+      <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+        <% job_template.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Template Metadata -->
+  <div class="bg-gray-50 p-6 rounded-lg">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Template Information</h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div>
+        <%= form.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :name, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "e.g., Senior Software Engineer Template" %>
+      </div>
+
+      <div>
+        <%= form.label :category, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :category, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "e.g., engineering, marketing, sales" %>
+        <p class="text-xs text-gray-500 mt-1">Used for organizing and filtering templates</p>
+      </div>
+
+      <div>
+        <%= form.label :tags, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :tags, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "e.g., senior, remote, full-time" %>
+        <p class="text-xs text-gray-500 mt-1">Comma-separated tags for easier searching</p>
+      </div>
+
+      <div class="lg:col-span-2">
+        <%= form.label :description, "Template Description", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_area :description, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", rows: 3, placeholder: "Describe what this template is for and when to use it..." %>
+      </div>
+
+      <div class="flex items-center">
+        <%= form.check_box :is_active, class: "rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" %>
+        <%= form.label :is_active, "Active template", class: "ml-2 text-sm text-gray-700" %>
+        <p class="text-xs text-gray-500 ml-2">Only active templates can be used to create jobs</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Basic Job Information -->
+    <div class="space-y-4">
+      <h3 class="text-lg font-medium text-gray-900">Job Information</h3>
+      
+      <div>
+        <%= form.label :title, "Job Title", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :title, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "e.g., Senior Software Engineer" %>
+      </div>
+
+      <div>
+        <%= form.label :location, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :location, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "e.g., San Francisco, CA" %>
+      </div>
+
+      <div>
+        <%= form.label :employment_type, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :employment_type, 
+            options_for_select([
+              ["Full Time", "full_time"],
+              ["Part Time", "part_time"], 
+              ["Contract", "contract"],
+              ["Temporary", "temporary"],
+              ["Internship", "internship"]
+            ], job_template.employment_type),
+            { prompt: "Select employment type", include_blank: true },
+            { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+      </div>
+
+      <div>
+        <%= form.label :experience_level, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :experience_level,
+            options_for_select([
+              ["Entry Level", "entry"],
+              ["Junior", "junior"],
+              ["Mid Level", "mid"],
+              ["Senior", "senior"],
+              ["Lead", "lead"],
+              ["Executive", "executive"]
+            ], job_template.experience_level),
+            { prompt: "Select experience level", include_blank: true },
+            { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+      </div>
+    </div>
+
+    <!-- Compensation & Details -->
+    <div class="space-y-4">
+      <h3 class="text-lg font-medium text-gray-900">Compensation & Details</h3>
+      
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <%= form.label :currency, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :currency, value: job_template.currency || "USD", class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+        <div>
+          <%= form.label :salary_range_min, "Min Salary", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :salary_range_min, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "50000" %>
+        </div>
+        <div>
+          <%= form.label :salary_range_max, "Max Salary", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :salary_range_max, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "80000" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :department_id, "Department", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.collection_select :department_id, 
+            current_user.organization.departments, 
+            :id, :name, 
+            { prompt: "Select department", include_blank: true },
+            { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+      </div>
+
+      <div class="flex items-center">
+        <%= form.check_box :remote_work_allowed, class: "rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" %>
+        <%= form.label :remote_work_allowed, "Remote work allowed", class: "ml-2 text-sm text-gray-700" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extended Information -->
+  <div class="space-y-4 pt-6 border-t border-gray-200">
+    <h3 class="text-lg font-medium text-gray-900">Job Details</h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div>
+        <%= form.label :template_description, "Job Description", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.rich_text_area :template_description, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Job overview and responsibilities..." %>
+      </div>
+
+      <div>
+        <%= form.label :template_requirements, "Requirements", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.rich_text_area :template_requirements, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Required skills, experience, education..." %>
+      </div>
+
+      <div>
+        <%= form.label :template_qualifications, "Preferred Qualifications", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.rich_text_area :template_qualifications, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Nice to have qualifications..." %>
+      </div>
+
+      <div>
+        <%= form.label :template_benefits, "Benefits", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.rich_text_area :template_benefits, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Health insurance, 401k, PTO..." %>
+      </div>
+
+      <div class="lg:col-span-2">
+        <%= form.label :template_application_instructions, "Application Instructions", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.rich_text_area :template_application_instructions, class: "w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Special instructions for applicants..." %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+    <div class="flex space-x-3">
+      <%= form.submit "Save Template", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+      <%= link_to "Cancel", job_template.persisted? ? job_template : job_templates_path, class: "bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" %>
+    </div>
+    
+    <% if job_template.persisted? %>
+      <div class="text-sm text-gray-500">
+        Last updated <%= time_ago_in_words(job_template.updated_at) %> ago
+      </div>
+    <% end %>
+  </div>
+<% end %>

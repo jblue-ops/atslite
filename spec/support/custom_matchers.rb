@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Custom matchers for ATS-specific functionality
 RSpec::Matchers.define :have_job_status do |expected_status|
   match do |job|
@@ -122,7 +124,7 @@ end
 RSpec::Matchers.define :have_sent_notification do |notification_type|
   match do |recipient|
     @notification_type = notification_type
-    recipient.notifications.where(notification_type: notification_type).exists?
+    recipient.notifications.exists?(notification_type: notification_type)
   end
 
   failure_message do |recipient|

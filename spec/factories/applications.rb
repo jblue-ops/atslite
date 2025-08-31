@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :application do
     job
@@ -96,7 +98,7 @@ FactoryBot.define do
       after(:build) do |application|
         unless application.candidate.resume.attached?
           application.candidate.resume.attach(
-            io: File.open(Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf")),
+            io: Rails.root.join("spec", "fixtures", "files", "sample_resume.pdf").open,
             filename: "resume.pdf",
             content_type: "application/pdf"
           )
@@ -107,7 +109,7 @@ FactoryBot.define do
     trait :with_cover_letter_file do
       after(:build) do |application|
         application.cover_letter_file.attach(
-          io: File.open(Rails.root.join("spec", "fixtures", "files", "cover_letter.pdf")),
+          io: Rails.root.join("spec", "fixtures", "files", "cover_letter.pdf").open,
           filename: "cover_letter.pdf",
           content_type: "application/pdf"
         )
@@ -282,9 +284,9 @@ FactoryBot.define do
 
     trait :with_detailed_feedback do
       feedback do
-        "Thank you for your interest in our company. After careful consideration, " +
-          "we have decided to move forward with other candidates whose experience " +
-          "more closely aligns with our current needs. We encourage you to apply " +
+        "Thank you for your interest in our company. After careful consideration, " \
+          "we have decided to move forward with other candidates whose experience " \
+          "more closely aligns with our current needs. We encourage you to apply " \
           "for future positions that match your background."
       end
     end

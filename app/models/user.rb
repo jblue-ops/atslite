@@ -31,7 +31,7 @@ class User < ApplicationRecord
   has_many :sent_communications, class_name: "Communication", foreign_key: "sender_id", dependent: :destroy
 
   # Validations
-  validates :first_name, :last_name, :role, :organization, presence: true
+  validates :first_name, :last_name, :role, presence: true
   validates :email, presence: true, uniqueness: { scope: :organization_id }
   validates :phone, format: { with: /\A\+?[0-9()\-\s]+\z/, message: "must be a valid phone number" },
                     allow_blank: true
@@ -141,7 +141,7 @@ class User < ApplicationRecord
   end
 
   def password_complexity
-    return unless password.present?
+    return if password.blank?
 
     # Check for minimum complexity requirements
     unless password.match?(/\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}\z/)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_31_011152) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -20,7 +20,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.string "name", null: false
     t.text "body"
     t.string "record_type", null: false
-    t.bigint "record_id", null: false
+    t.string "record_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
@@ -29,7 +29,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
-    t.bigint "record_id", null: false
+    t.string "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
@@ -413,12 +413,63 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.index ["status"], name: "index_interviews_on_status"
   end
 
+  create_table "job_templates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "category", null: false
+    t.text "tags"
+    t.boolean "is_active", default: true, null: false
+    t.boolean "is_default", default: false, null: false
+    t.string "title"
+    t.string "location"
+    t.string "employment_type"
+    t.string "experience_level"
+    t.integer "salary_range_min"
+    t.integer "salary_range_max"
+    t.string "currency", default: "USD"
+    t.boolean "remote_work_allowed", default: false
+    t.uuid "organization_id", null: false
+    t.uuid "department_id"
+    t.uuid "created_by_id", null: false
+    t.uuid "last_used_by_id"
+    t.integer "usage_count", default: 0, null: false
+    t.datetime "last_used_at"
+    t.jsonb "settings", default: {}
+    t.jsonb "default_job_settings", default: {}
+    t.integer "version", default: 1, null: false
+    t.uuid "parent_template_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category", "is_active"], name: "index_job_templates_on_category_and_is_active"
+    t.index ["created_by_id"], name: "index_job_templates_on_created_by_id"
+    t.index ["default_job_settings"], name: "index_job_templates_on_default_job_settings", using: :gin
+    t.index ["department_id"], name: "index_job_templates_on_department_id"
+    t.index ["last_used_at"], name: "index_job_templates_on_last_used_at"
+    t.index ["organization_id", "category"], name: "index_job_templates_on_organization_id_and_category"
+    t.index ["organization_id", "category"], name: "index_job_templates_unique_default_per_category", unique: true, where: "(is_default = true)"
+    t.index ["organization_id", "is_active"], name: "index_job_templates_on_organization_id_and_is_active"
+    t.index ["organization_id", "is_default"], name: "index_job_templates_on_organization_id_and_is_default"
+    t.index ["organization_id", "name"], name: "index_job_templates_on_organization_id_and_name", unique: true
+    t.index ["parent_template_id"], name: "index_job_templates_on_parent_template_id"
+    t.index ["settings"], name: "index_job_templates_on_settings", using: :gin
+    t.index ["usage_count"], name: "index_job_templates_on_usage_count"
+    t.check_constraint "category::text <> ''::text", name: "job_templates_category_not_empty"
+    t.check_constraint "category::text = ANY (ARRAY['engineering'::character varying, 'sales'::character varying, 'marketing'::character varying, 'design'::character varying, 'hr'::character varying, 'finance'::character varying, 'operations'::character varying, 'customer_success'::character varying, 'product'::character varying, 'legal'::character varying, 'executive'::character varying, 'other'::character varying]::text[])", name: "job_templates_category_valid"
+    t.check_constraint "employment_type::text = ANY (ARRAY['full_time'::character varying, 'part_time'::character varying, 'contract'::character varying, 'temporary'::character varying, 'internship'::character varying]::text[])", name: "job_templates_employment_type_valid"
+    t.check_constraint "experience_level::text = ANY (ARRAY['entry'::character varying, 'junior'::character varying, 'mid'::character varying, 'senior'::character varying, 'lead'::character varying, 'executive'::character varying]::text[])", name: "job_templates_experience_level_valid"
+    t.check_constraint "name::text <> ''::text", name: "job_templates_name_not_empty"
+    t.check_constraint "salary_range_max >= salary_range_min", name: "job_templates_salary_range_max_gte_min"
+    t.check_constraint "salary_range_min >= 0", name: "job_templates_salary_range_min_positive"
+    t.check_constraint "usage_count >= 0", name: "job_templates_usage_count_positive"
+    t.check_constraint "version >= 1", name: "job_templates_version_positive"
+  end
+
   create_table "jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "organization_id", null: false
     t.uuid "department_id"
     t.uuid "hiring_manager_id"
     t.string "title", null: false
-    t.text "description", null: false
+    t.text "description"
     t.text "requirements"
     t.string "employment_type", null: false
     t.string "location"
@@ -437,11 +488,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
     t.integer "application_count", default: 0
     t.integer "view_count", default: 0
     t.jsonb "settings", default: {}
+    t.text "benefits"
+    t.text "application_instructions"
+    t.uuid "job_template_id"
     t.index ["department_id"], name: "index_jobs_on_department_id"
     t.index ["employment_type"], name: "index_jobs_on_employment_type"
     t.index ["experience_level"], name: "index_jobs_on_experience_level"
     t.index ["expires_at"], name: "index_jobs_on_expires_at"
     t.index ["hiring_manager_id"], name: "index_jobs_on_hiring_manager_id"
+    t.index ["job_template_id"], name: "index_jobs_on_job_template_id"
     t.index ["legacy_posted_at"], name: "index_jobs_on_legacy_posted_at"
     t.index ["organization_id", "department_id"], name: "index_jobs_on_organization_id_and_department_id"
     t.index ["organization_id", "status"], name: "index_jobs_on_organization_id_and_status"
@@ -588,7 +643,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_30_024913) do
   add_foreign_key "interviews", "applications"
   add_foreign_key "interviews", "users", column: "organizer_id"
   add_foreign_key "interviews", "users", column: "primary_interviewer_id"
+  add_foreign_key "job_templates", "departments"
+  add_foreign_key "job_templates", "job_templates", column: "parent_template_id"
+  add_foreign_key "job_templates", "organizations"
+  add_foreign_key "job_templates", "users", column: "created_by_id"
+  add_foreign_key "job_templates", "users", column: "last_used_by_id"
   add_foreign_key "jobs", "departments"
+  add_foreign_key "jobs", "job_templates"
   add_foreign_key "jobs", "organizations"
   add_foreign_key "jobs", "users", column: "hiring_manager_id"
   add_foreign_key "notes", "organizations"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :job do
     organization
@@ -81,9 +83,9 @@ FactoryBot.define do
       department { "Engineering" }
       experience_level { "mid" }
       requirements do
-        "• 3+ years of experience with Ruby on Rails\n" +
-          "• Strong understanding of web technologies\n" +
-          "• Experience with SQL databases\n" +
+        "• 3+ years of experience with Ruby on Rails\n" \
+          "• Strong understanding of web technologies\n" \
+          "• Experience with SQL databases\n" \
           "• Knowledge of version control (Git)"
       end
     end
@@ -93,9 +95,9 @@ FactoryBot.define do
       department { "Product" }
       experience_level { "senior" }
       requirements do
-        "• 5+ years of product management experience\n" +
-          "• Strong analytical and communication skills\n" +
-          "• Experience with agile methodologies\n" +
+        "• 5+ years of product management experience\n" \
+          "• Strong analytical and communication skills\n" \
+          "• Experience with agile methodologies\n" \
           "• Technical background preferred"
       end
     end

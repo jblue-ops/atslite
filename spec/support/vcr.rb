@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # VCR configuration for external API testing
 require "vcr"
 
